@@ -1,3 +1,4 @@
+import { widenQuoteForDeskMarkup } from '../admin/desk-policy.js';
 import { fxDecimal, fxToPriceString } from '../decimal-fx.js';
 import type { ForexInstrument, NormalizedQuote, ProviderRawQuote } from '../types.js';
 import { calculateMid, calculateSpread } from './spread.js';
@@ -17,8 +18,9 @@ export interface NormalizeArgs {
 export function normalizeProviderQuote(args: NormalizeArgs): NormalizedQuote {
   const { raw, instrument, receivedTimestamp, edaReceiveSequence } = args;
   const now = args.now ?? receivedTimestamp;
-  const bid = fxDecimal(raw.bid);
-  const ask = fxDecimal(raw.ask);
+  const widened = widenQuoteForDeskMarkup(instrument.symbol, String(raw.bid), String(raw.ask), instrument.pipSize);
+  const bid = fxDecimal(widened.bid);
+  const ask = fxDecimal(widened.ask);
   const mid = calculateMid(bid, ask);
   const spread = calculateSpread(bid, ask, instrument);
   const stale = evaluateStaleness({

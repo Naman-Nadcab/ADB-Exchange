@@ -7,6 +7,7 @@ import { useAdminAuthStore } from '@/store/auth';
 import {
   getForexAdminConfig,
   getForexAdminControls,
+  patchForexInstrumentPolicy,
   patchForexInstrumentTradingStatus,
 } from '@/lib/admin/forex-api';
 import { Badge } from '@/components/ui/Badge';
@@ -32,6 +33,9 @@ export type ForexInstrumentRow = {
   commissionType: string;
   swapLong: string;
   swapShort: string;
+  volumeStep?: string;
+  spreadMarkupPips?: string;
+  stopsLevelPips?: string;
   overridden?: boolean;
 };
 
@@ -55,6 +59,8 @@ export function ForexInstrumentsPanel() {
   const [q, setQ] = useState('');
   const [detail, setDetail] = useState<ForexInstrumentRow | null>(null);
   const [statusAction, setStatusAction] = useState<StatusAction | null>(null);
+  const [contractOpen, setContractOpen] = useState(false);
+  const [contractError, setContractError] = useState<string | null>(null);
 
   const configQ = useQuery({
     queryKey: ['admin', 'forex', 'config', 'instruments-panel', token],
@@ -116,6 +122,20 @@ export function ForexInstrumentsPanel() {
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['admin', 'forex'] });
       setStatusAction(null);
+    },
+  });
+
+  const contractM = useMutation({
+    mutationFn: async (args: { symbol: string; reason: string; volume_step: string; swap_long: string; swap_short: string; commission: string; spread_markup_pips: string; stops_level_pips: string }) => {
+      const res = await patchForexInstrumentPolicy(token, args.symbol, args);
+      if (!res.success) throw new Error(res.error?.message ?? 'Contract update failed');
+      return res.data;
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'forex'] });
+      setContractOpen(false);
+      setDetail(null);
+      setContractError(null);
     },
   });
 
@@ -271,10 +291,48 @@ export function ForexInstrumentsPanel() {
             ]}
           />
         ) : null}
+        {detail ? (
+          <div className="mt-3 grid gap-2 sm:grid-cols-3">
+            <label className="text-xs text-admin-muted">Volume step<Input id="contract-step" className="mt-1 h-8 font-mono" defaultValue={detail.volumeStep ?? '0.01'} /></label>
+            <label className="text-xs text-admin-muted">Swap long<Input id="contract-swap-long" className="mt-1 h-8 font-mono" defaultValue={detail.swapLong} /></label>
+            <label className="text-xs text-admin-muted">Swap short<Input id="contract-swap-short" className="mt-1 h-8 font-mono" defaultValue={detail.swapShort} /></label>
+            <label className="text-xs text-admin-muted">Commission<Input id="contract-commission" className="mt-1 h-8 font-mono" defaultValue={detail.commission} /></label>
+            <label className="text-xs text-admin-muted">Markup pips<Input id="contract-markup" className="mt-1 h-8 font-mono" defaultValue={detail.spreadMarkupPips ?? '0'} /></label>
+            <label className="text-xs text-admin-muted">Stops level pips<Input id="contract-stops" className="mt-1 h-8 font-mono" defaultValue={detail.stopsLevelPips ?? '0'} /></label>
+          </div>
+        ) : null}
+        {contractError ? <p className="mt-2 text-sm text-red-400">{contractError}</p> : null}
         <ModalFooter className="-mx-6 mt-4 border-t border-admin-border px-6">
           <Button type="button" variant="secondary" size="sm" onClick={() => setDetail(null)}>
             Close
           </Button>
+          <ProtectedAction permission="forex:control" fallback="hidden">
+            <Button
+              type="button"
+              size="sm"
+              onClick={() => {
+                const read = (id: string) => (document.getElementById(id) as HTMLInputElement | null)?.value.trim() ?? '';
+                const volume_step = read('contract-step');
+                const swap_long = read('contract-swap-long');
+                const swap_short = read('contract-swap-short');
+                const commission = read('contract-commission');
+                const spread_markup_pips = read('contract-markup');
+                const stops_level_pips = read('contract-stops');
+                if (![volume_step, commission, spread_markup_pips, stops_level_pips].every((v) => /^\d+(\.\d+)?$/.test(v))) {
+                  setContractError('Step, commission, markup, and stops must be numbers.');
+                  return;
+                }
+                if (![swap_long, swap_short].every((v) => /^-?\d+(\.\d+)?$/.test(v))) {
+                  setContractError('Swap long and short must be numbers.');
+                  return;
+                }
+                setContractError(null);
+                setContractOpen(true);
+              }}
+            >
+              Save contract
+            </Button>
+          </ProtectedAction>
         </ModalFooter>
       </Modal>
 
@@ -296,6 +354,27 @@ export function ForexInstrumentsPanel() {
             symbol: statusAction.symbol,
             trading_status: statusAction.nextStatus,
             reason,
+          });
+        }}
+      />
+      <ForexConfirmModal
+        open={contractOpen && !!detail}
+        onClose={() => setContractOpen(false)}
+        title={`Save contract · ${detail?.symbol ?? ''}`}
+        description="Markup widens a real bid/ask. A zero spread is left unchanged."
+        loading={contractM.isPending}
+        onConfirm={async (reason) => {
+          if (!detail) return;
+          const read = (id: string) => (document.getElementById(id) as HTMLInputElement | null)?.value.trim() ?? '';
+          await contractM.mutateAsync({
+            symbol: detail.symbol,
+            reason,
+            volume_step: read('contract-step'),
+            swap_long: read('contract-swap-long'),
+            swap_short: read('contract-swap-short'),
+            commission: read('contract-commission'),
+            spread_markup_pips: read('contract-markup'),
+            stops_level_pips: read('contract-stops'),
           });
         }}
       />

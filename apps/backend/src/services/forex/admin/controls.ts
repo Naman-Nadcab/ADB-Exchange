@@ -1,6 +1,7 @@
 /**
  * Admin F3 — global controls snapshot & mutations (read effective + env baseline).
  */
+import { persistForexDeskPolicy } from './desk-policy.js';
 import { getForexAdminBackendConfig } from './config.js';
 import {
   effectiveForexRuntimeFlags,
@@ -80,6 +81,7 @@ export function applyForexAdminControlsPatch(patch: ForexAdminControlsPatch): Ar
     if (typeof v !== 'boolean') continue;
     changes.push({ key: cfgKey, ...setForexRuntimeBool(cfgKey, v) });
   }
+  void persistForexDeskPolicy();
   return changes;
 }
 
@@ -92,5 +94,6 @@ export function applyForexInstrumentStatusPatch(
     throw new Error('INVALID_TRADING_STATUS');
   }
   const { previous, next } = setForexInstrumentTradingStatus(symbol, status as ForexTradingStatus);
+  void persistForexDeskPolicy();
   return { symbol: symbol.toUpperCase(), previous, next };
 }

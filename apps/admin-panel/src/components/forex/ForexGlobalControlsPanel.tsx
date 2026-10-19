@@ -15,6 +15,7 @@ import { Button } from '@/components/ui/Button';
 import { SafeActionModal } from '@/components/ui/SafeActionModal';
 import { ForexConfirmModal } from '@/components/forex/primitives/ForexConfirmModal';
 import { ForexPanelShell } from '@/components/forex/primitives/ForexPanelShell';
+import { ForexDeskPolicyPanel } from '@/components/forex/ForexDeskPolicyPanel';
 import { AlertTriangle, RefreshCw } from 'lucide-react';
 import {
   extractForexApprovalPending,
@@ -214,6 +215,8 @@ export function ForexGlobalControlsPanel() {
           </p>
         ) : null}
       </ForexPanelShell>
+
+      <ForexDeskPolicyPanel />
 
       {snap ? (
         <ForexPanelShell

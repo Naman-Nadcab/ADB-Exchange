@@ -2,13 +2,14 @@
 
 import Link from 'next/link';
 import { useMemo, useState } from 'react';
-import { useQuery } from '@tanstack/react-query';
+import { useMutation, useQuery } from '@tanstack/react-query';
 import type { ColumnDef } from '@tanstack/react-table';
 import { useAdminAuthStore } from '@/store/auth';
 import {
   downloadForexAdminCsv,
   getForexAdminFinanceAccounts,
   getForexAdminFinanceReconciliation,
+  createForexAdminFinanceRequest,
   type ForexAdminFinanceAccountRow,
   type ForexAdminFinanceReconciliationRow,
 } from '@/lib/admin/forex-api';
@@ -17,6 +18,7 @@ import { Button } from '@/components/ui/Button';
 import { DataTable } from '@/components/ui/DataTable';
 import { Input } from '@/components/ui/Input';
 import { ForexPanelShell } from '@/components/forex/primitives/ForexPanelShell';
+import { ProtectedAction } from '@/components/rbac/ProtectedAction';
 import { Download, RefreshCw, Search } from 'lucide-react';
 
 export function ForexCrmFinancePanel() {
@@ -29,6 +31,29 @@ export function ForexCrmFinancePanel() {
   const [reconAccount, setReconAccount] = useState('');
   const [reconOk, setReconOk] = useState('');
   const [exportError, setExportError] = useState<string | null>(null);
+  const [cashAccount, setCashAccount] = useState('');
+  const [cashKind, setCashKind] = useState('CREDIT');
+  const [cashAmount, setCashAmount] = useState('');
+  const [cashReason, setCashReason] = useState('');
+  const [cashMsg, setCashMsg] = useState<string | null>(null);
+
+  const cashM = useMutation({
+    mutationFn: async () => {
+      const res = await createForexAdminFinanceRequest(token, {
+        account_id: cashAccount.trim(),
+        kind: cashKind,
+        amount: cashAmount.trim(),
+        reason: cashReason.trim(),
+      });
+      if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Request failed');
+      return res.data;
+    },
+    onSuccess: (data) => {
+      setCashMsg(`Request ${data.request_id} is ${data.status}. A second admin must approve it before the ledger posts.`);
+      setCashAmount('');
+      setCashReason('');
+    },
+  });
 
   const accountsQ = useQuery({
     queryKey: ['admin', 'forex', 'crm', 'finance', 'accounts', token, page, q, accountStatus],
@@ -159,6 +184,29 @@ export function ForexCrmFinancePanel() {
 
   return (
     <div className="admin-stack-lg">
+      <ForexPanelShell
+        title="Cashier request"
+        description="Credit, debit, adjustment, or fee. The ledger posts only after maker-checker approval. This does not broadcast a chain withdrawal."
+      >
+        <div className="grid gap-2 sm:grid-cols-4">
+          <Input placeholder="Account id" value={cashAccount} onChange={(e) => setCashAccount(e.target.value)} className="h-9 font-mono text-xs" />
+          <select value={cashKind} onChange={(e) => setCashKind(e.target.value)} className="h-9 rounded border border-admin-border bg-admin-bg px-2 text-sm">
+            <option value="CREDIT">CREDIT</option>
+            <option value="DEBIT">DEBIT</option>
+            <option value="ADJUSTMENT">ADJUSTMENT</option>
+            <option value="FEE">FEE</option>
+          </select>
+          <Input placeholder="Amount" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} className="h-9" />
+          <Input placeholder="Reason (min 8)" value={cashReason} onChange={(e) => setCashReason(e.target.value)} className="h-9" />
+        </div>
+        <ProtectedAction permission="forex:finance:manage" fallback="disabled">
+          <Button type="button" size="sm" className="mt-3" disabled={cashM.isPending || cashReason.trim().length < 8} onClick={() => void cashM.mutate()}>
+            Submit for approval
+          </Button>
+        </ProtectedAction>
+        {cashM.isError ? <p className="mt-2 text-sm text-red-400">{cashM.error instanceof Error ? cashM.error.message : 'Request failed'}</p> : null}
+        {cashMsg ? <p className="mt-2 text-sm text-admin-muted">{cashMsg}</p> : null}
+      </ForexPanelShell>
       <ForexPanelShell
         title="Finance desk — ledger accounts"
         description="CUSTOMER_CASH balances and reconciliation posture per forex account"

@@ -39,6 +39,7 @@ export type ForexAdminExecutionSnapshot = {
     executionMode: string;
     realForex: boolean;
     killSwitch: boolean;
+    bookMode: 'A_BOOK' | 'B_BOOK' | 'HYBRID';
   };
   routing: {
     rules: ForexRoutingRule[];
@@ -128,6 +129,7 @@ export async function buildForexAdminExecutionSnapshot(): Promise<ForexAdminExec
       executionMode: flags.executionMode,
       realForex: isLiveForexReleaseOpen(),
       killSwitch: flags.killSwitch,
+      bookMode: (await import('./desk-policy.js')).getForexBookMode(),
     },
     routing: { rules, mockProvidersOnly },
     providers,

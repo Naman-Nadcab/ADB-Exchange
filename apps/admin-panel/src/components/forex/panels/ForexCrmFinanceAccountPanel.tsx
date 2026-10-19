@@ -3,7 +3,7 @@
 import Link from 'next/link';
 import { useQuery } from '@tanstack/react-query';
 import { useAdminAuthStore } from '@/store/auth';
-import { getForexAdminFinanceAccountDetail } from '@/lib/admin/forex-api';
+import { getForexAdminFinanceAccountDetail, getForexAccountStatement } from '@/lib/admin/forex-api';
 import { Badge } from '@/components/ui/Badge';
 import { Button } from '@/components/ui/Button';
 import { ForexDetailGrid } from '@/components/forex/primitives/ForexDetailGrid';
@@ -21,6 +21,16 @@ export function ForexCrmFinanceAccountPanel({ accountId }: { accountId: string }
     },
     enabled: !!token && !!accountId,
     staleTime: 15_000,
+  });
+
+  const statementQ = useQuery({
+    queryKey: ['admin', 'forex', 'statement', accountId, token],
+    queryFn: async () => {
+      const res = await getForexAccountStatement(token, accountId);
+      if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Statement failed');
+      return res.data;
+    },
+    enabled: !!token && !!accountId,
   });
 
   const d = q.data;
@@ -104,6 +114,30 @@ export function ForexCrmFinanceAccountPanel({ accountId }: { accountId: string }
                       <span className="text-[10px] text-admin-muted">{new Date(tx.created_at).toLocaleString()}</span>
                     </div>
                     <p className="mt-1 font-mono text-[10px] text-admin-muted">{tx.transaction_id}</p>
+                  </li>
+                ))}
+              </ul>
+            )}
+          </ForexPanelShell>
+
+          <ForexPanelShell title="Account statement" description="CUSTOMER_CASH lines from the forex ledger. Empty when the account has no posted entries.">
+            {statementQ.isLoading ? (
+              <p className="text-sm text-admin-muted">Loading statement…</p>
+            ) : statementQ.isError ? (
+              <p className="text-sm text-red-400">{statementQ.error instanceof Error ? statementQ.error.message : 'Statement failed'}</p>
+            ) : (statementQ.data?.rows.length ?? 0) === 0 ? (
+              <p className="text-sm text-admin-muted">No cash entries yet.</p>
+            ) : (
+              <ul className="space-y-2 text-sm">
+                {statementQ.data?.rows.map((row) => (
+                  <li key={row.transaction_id} className="flex flex-wrap items-center justify-between gap-2 rounded border border-admin-border/60 px-3 py-2">
+                    <span>
+                      {row.type} · {row.status}
+                      <span className="ml-2 font-mono text-xs text-admin-muted">{new Date(row.created_at).toLocaleString()}</span>
+                    </span>
+                    <span className="tabular-nums">
+                      {Number(row.credit) > 0 ? `+${row.credit}` : `-${row.debit}`}
+                    </span>
                   </li>
                 ))}
               </ul>

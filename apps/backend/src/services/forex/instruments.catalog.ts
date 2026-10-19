@@ -1,4 +1,5 @@
 import type { ForexInstrument } from './types.js';
+import { getForexInstrumentDeskExtra } from './admin/desk-policy.js';
 import { getForexInstrumentPolicyOverride } from './admin/effective-config.js';
 import { getForexInstrumentTradingStatusOverride } from './admin/runtime-controls.js';
 
@@ -124,6 +125,8 @@ export function getForexInstrumentBySymbol(symbol: string): ForexInstrument | un
       ...(policy.maxVolume != null ? { maxVolume: policy.maxVolume } : {}),
     };
   }
+  const extra = getForexInstrumentDeskExtra(symbol);
+  if (extra?.volumeStep) out = { ...out, volumeStep: extra.volumeStep };
   return out;
 }
 

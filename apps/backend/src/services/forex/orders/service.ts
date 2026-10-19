@@ -226,6 +226,8 @@ export class ForexOrderService {
   }
 
   async expireDayOrders(): Promise<ForexOrderRecord[]> {
+    const { isForexDayExpiryEnabled } = await import('../admin/desk-policy.js');
+    if (!isForexDayExpiryEnabled()) return [];
     const candidates = this.store
       .listOpen()
       .filter((o) => o.timeInForce === 'DAY' && isPendingWorkingStatus(o.status));

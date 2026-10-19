@@ -45,8 +45,8 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
       { id: 'funding_test_api', label: 'Funding test API', description: 'Ops-only funding test header', kind: 'toggle', phase: 'F3', wired: true },
       { id: 'execution_test_api', label: 'Execution test API', description: 'Simulated test execution endpoint', kind: 'toggle', phase: 'F3', wired: true },
       { id: 'forex_kyc_required', label: 'Forex KYC required', description: 'When on, live Forex applications require approved platform KYC. Crypto KYC is unchanged.', kind: 'toggle', phase: 'F3', wired: true },
-      { id: 'order_types_policy', label: 'Customer order types', description: 'market / limit / stop / stop_limit', kind: 'select', phase: 'F4', wired: false },
-      { id: 'tif_policy', label: 'Time in force', description: 'GTC / IOC / FOK / DAY', kind: 'select', phase: 'F4', wired: false },
+      { id: 'order_types_policy', label: 'Customer order types', description: 'market / limit / stop / stop_limit', kind: 'select', phase: 'F4', wired: true },
+      { id: 'tif_policy', label: 'Time in force', description: 'GTC / DAY / IOC / FOK', kind: 'select', phase: 'F4', wired: true },
     ],
   },
   {
@@ -67,7 +67,7 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     controls: [
       { id: 'session_snapshot', label: 'Session eligibility', description: 'Open / closed by symbol', kind: 'readonly', phase: 'F1', wired: true },
       { id: 'holiday_calendar', label: 'Holiday calendar', description: 'DST-safe holiday coverage', kind: 'table', phase: 'F4', wired: true },
-      { id: 'day_order_expiry', label: 'DAY order expiry', description: 'Expire working orders on session close', kind: 'toggle', phase: 'F4', wired: false },
+      { id: 'day_order_expiry', label: 'DAY order expiry', description: 'Expire working orders on session close', kind: 'toggle', phase: 'F4', wired: true },
     ],
   },
   {

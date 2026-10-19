@@ -1,3 +1,4 @@
+import { getForexInstrumentDeskExtra } from '../admin/desk-policy.js';
 import { fxDecimal, fxDecimalPlaces, fxPositive } from '../decimal-fx.js';
 import { getForexInstrumentBySymbol } from '../instruments.catalog.js';
 import type { ForexPositionRecord } from '../positions/models.js';
@@ -73,6 +74,13 @@ export function validateProtectionCreate(args: {
   });
   if (!dir.ok) {
     throw new ForexProtectionError(dir.reason, 'trigger price is not valid for this side/type — not rewritten');
+  }
+  const stops = getForexInstrumentDeskExtra(args.position.symbol)?.stopsLevelPips;
+  if (stops && fxDecimal(stops).gt(0)) {
+    const minDist = fxDecimal(instrument.pipSize).mul(stops);
+    if (trigger.minus(market).abs().lt(minDist)) {
+      throw new ForexProtectionError('STOPS_LEVEL', `trigger must be at least ${stops} pips from the market`);
+    }
   }
   return {
     type: args.type,

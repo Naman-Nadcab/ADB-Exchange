@@ -490,7 +490,7 @@ export function patchForexAdminPolicy(
 export function patchForexInstrumentPolicy(
   token: string | null,
   symbol: string,
-  body: { reason: string; max_leverage?: string; min_volume?: string; max_volume?: string },
+  body: { reason: string; max_leverage?: string; min_volume?: string; max_volume?: string; volume_step?: string; swap_long?: string; swap_short?: string; commission?: string; spread_markup_pips?: string; stops_level_pips?: string },
 ) {
   return adminFetch<{ snapshot: ForexAdminPolicySnapshot }>(`/forex/policy/instruments/${encodeURIComponent(symbol)}`, {
     method: 'PATCH',
@@ -510,12 +510,61 @@ export function patchForexInstrumentTradingStatus(
   );
 }
 
+export type ForexDeskPolicy = {
+  bookMode: 'A_BOOK' | 'B_BOOK' | 'HYBRID';
+  orderPolicy: {
+    market: boolean;
+    limit: boolean;
+    stop: boolean;
+    stop_limit: boolean;
+    GTC: boolean;
+    DAY: boolean;
+    IOC: boolean;
+    FOK: boolean;
+    dayExpiry: boolean;
+  };
+  fills: string;
+  note?: string;
+};
+
+export function getForexDeskPolicy(token: string | null) {
+  return adminFetch<ForexDeskPolicy>('/forex/desk-policy', { token });
+}
+
+export function patchForexDeskPolicy(
+  token: string | null,
+  body: { reason: string; bookMode?: string; orderPolicy?: Partial<ForexDeskPolicy['orderPolicy']> },
+) {
+  return adminFetch<ForexDeskPolicy>('/forex/desk-policy', { token, method: 'PATCH', body });
+}
+
+export function adminCloseForexPosition(token: string | null, positionId: string, body: { reason: string; volume?: string }) {
+  return adminFetch(`/forex/positions/${encodeURIComponent(positionId)}/close`, { token, method: 'POST', body });
+}
+
+export function adminSetForexProtection(
+  token: string | null,
+  positionId: string,
+  body: { reason: string; type: 'STOP_LOSS' | 'TAKE_PROFIT'; trigger_price: string },
+) {
+  return adminFetch(`/forex/positions/${encodeURIComponent(positionId)}/protection`, { token, method: 'POST', body });
+}
+
+export function getForexAccountStatement(token: string | null, accountId: string) {
+  return adminFetch<{
+    account_id: string;
+    source: string;
+    rows: Array<{ transaction_id: string; type: string; status: string; created_at: string; debit: string; credit: string }>;
+  }>(`/forex/accounts/${encodeURIComponent(accountId)}/statement`, { token });
+}
+
 export type ForexAdminExecutionSnapshot = {
   posture: {
     source: string;
     executionMode: string;
     realForex: boolean;
     killSwitch: boolean;
+    bookMode?: 'A_BOOK' | 'B_BOOK' | 'HYBRID';
   };
   routing: { rules: Array<Record<string, unknown>>; mockProvidersOnly: boolean };
   providers: Array<{
@@ -729,6 +778,17 @@ export type ForexAdminFinanceAccountsSnapshot = {
   pagination: ForexAdminPagination;
   note: string;
 };
+
+export function createForexAdminFinanceRequest(
+  token: string | null,
+  body: { account_id: string; kind: string; amount: string; reason: string },
+) {
+  return adminFetch<{ request_id: string; approval_id?: string; status: string; approval_required: boolean }>('/forex/finance/requests', {
+    token,
+    method: 'POST',
+    body,
+  });
+}
 
 export function getForexAdminFinanceAccounts(
   token: string | null,
@@ -1196,7 +1256,7 @@ export function completeForexAdminCrmTask(token: string | null, taskId: string) 
 export function updateForexAdminAccountGroup(
   token: string | null,
   groupId: string,
-  body: { label?: string; leverage_default?: string; is_active?: boolean },
+  body: { label?: string; leverage_default?: string; is_active?: boolean; spread_profile?: { maxSpread?: string }; commission_profile?: { model?: string; rate?: string }; swap_profile?: { longSwap?: string; shortSwap?: string } },
 ) {
   return adminFetch<{ group: ForexAdminAccountGroupRow }>(`/forex/account-groups/${encodeURIComponent(groupId)}`, {
     token,

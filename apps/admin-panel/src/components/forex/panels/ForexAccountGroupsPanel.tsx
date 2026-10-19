@@ -24,6 +24,11 @@ export function ForexAccountGroupsPanel() {
   const [code, setCode] = useState('');
   const [label, setLabel] = useState('');
   const [formError, setFormError] = useState<string | null>(null);
+  const [profileGroup, setProfileGroup] = useState('');
+  const [profileRate, setProfileRate] = useState('');
+  const [profileLong, setProfileLong] = useState('');
+  const [profileShort, setProfileShort] = useState('');
+  const [profileSpread, setProfileSpread] = useState('');
 
   const qry = useQuery({
     queryKey: ['admin', 'forex', 'account-groups', token],
@@ -56,6 +61,22 @@ export function ForexAccountGroupsPanel() {
       if (!res.success) throw new Error(res.error?.message ?? 'Update failed');
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin', 'forex', 'account-groups'] }),
+  });
+
+  const profileMut = useMutation({
+    mutationFn: async () => {
+      const res = await updateForexAdminAccountGroup(token, profileGroup, {
+        commission_profile: profileRate.trim() ? { model: 'per_lot', rate: profileRate.trim() } : undefined,
+        swap_profile: profileLong.trim() || profileShort.trim() ? { longSwap: profileLong.trim() || undefined, shortSwap: profileShort.trim() || undefined } : undefined,
+        spread_profile: profileSpread.trim() ? { maxSpread: profileSpread.trim() } : undefined,
+      });
+      if (!res.success) throw new Error(res.error?.message ?? 'Profile update failed');
+    },
+    onSuccess: () => {
+      setFormError(null);
+      void qc.invalidateQueries({ queryKey: ['admin', 'forex', 'account-groups'] });
+    },
+    onError: (e) => setFormError(e instanceof Error ? e.message : 'Failed'),
   });
 
   const columns = useMemo<ColumnDef<ForexAdminAccountGroupRow>[]>(
@@ -104,7 +125,7 @@ export function ForexAccountGroupsPanel() {
   return (
     <ForexPanelShell
       title="Account groups"
-      description="Group policy profiles (JSON) persist in DB; margin engine may not consume all fields yet."
+      description="Commission, swap, and max spread apply to accounts in the group."
       actions={
         <Button variant="ghost" size="sm" onClick={() => void qry.refetch()} disabled={qry.isFetching}>
           <RefreshCw className={`mr-1 h-3.5 w-3.5 ${qry.isFetching ? 'animate-spin' : ''}`} />
@@ -120,6 +141,21 @@ export function ForexAccountGroupsPanel() {
             Create group
           </Button>
           {formError ? <span className="text-xs text-red-400">{formError}</span> : null}
+        </div>
+        <div className="mb-4 flex flex-wrap items-end gap-2 rounded-md border border-admin-border/60 bg-admin-surface/40 p-3">
+          <select value={profileGroup} onChange={(e) => setProfileGroup(e.target.value)} className="h-9 max-w-[180px] rounded border border-admin-border bg-admin-bg px-2 text-xs">
+            <option value="">Group profile…</option>
+            {(qry.data ?? []).map((g) => (
+              <option key={g.group_id} value={g.group_id}>{g.code}</option>
+            ))}
+          </select>
+          <Input placeholder="Commission / lot" value={profileRate} onChange={(e) => setProfileRate(e.target.value)} className="max-w-[140px]" />
+          <Input placeholder="Swap long" value={profileLong} onChange={(e) => setProfileLong(e.target.value)} className="max-w-[120px]" />
+          <Input placeholder="Swap short" value={profileShort} onChange={(e) => setProfileShort(e.target.value)} className="max-w-[120px]" />
+          <Input placeholder="Max spread" value={profileSpread} onChange={(e) => setProfileSpread(e.target.value)} className="max-w-[120px]" />
+          <Button size="sm" disabled={profileMut.isPending || !profileGroup || (!profileRate.trim() && !profileLong.trim() && !profileShort.trim() && !profileSpread.trim())} onClick={() => void profileMut.mutate()}>
+            Save profile
+          </Button>
         </div>
       </ProtectedAction>
 

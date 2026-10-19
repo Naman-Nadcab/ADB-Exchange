@@ -1,6 +1,7 @@
 /**
  * Admin F4 — economic policy snapshot & runtime edits (fees, swaps, leverage, margin, instrument caps).
  */
+import { persistForexDeskPolicy, getForexInstrumentDeskExtra, setForexInstrumentDeskExtra } from './desk-policy.js';
 import { setForexGlobalCommission, listForexCommissionPolicies, type ForexCommissionModel } from '../fees/policy.js';
 import { setForexGlobalSwap, listForexSwapPolicies } from '../swap/policy.js';
 import { fxDecimal } from '../decimal-fx.js';
@@ -146,12 +147,23 @@ export function applyForexAdminPolicyPatch(patch: ForexAdminPolicyPatch): Array<
     changes.push({ field: 'swap.global', previous: prev, next: listForexSwapPolicies().global });
   }
 
+  void persistForexDeskPolicy();
   return changes;
 }
 
 export function applyForexInstrumentPolicyPatch(
   symbol: string,
-  body: { max_leverage?: string; min_volume?: string; max_volume?: string },
+  body: {
+    max_leverage?: string;
+    min_volume?: string;
+    max_volume?: string;
+    volume_step?: string;
+    swap_long?: string;
+    swap_short?: string;
+    commission?: string;
+    spread_markup_pips?: string;
+    stops_level_pips?: string;
+  },
 ): { symbol: string; previous: Record<string, string | undefined>; next: Record<string, string | undefined> } {
   const base = getForexInstrumentBySymbol(symbol);
   if (!base) throw new Error('UNKNOWN_INSTRUMENT');
@@ -166,22 +178,47 @@ export function applyForexInstrumentPolicyPatch(
   if (body.max_leverage != null) patch.maxLeverage = positive('MAX_LEVERAGE', String(body.max_leverage));
   if (body.min_volume != null) patch.minVolume = positive('MIN_VOLUME', String(body.min_volume));
   if (body.max_volume != null) patch.maxVolume = positive('MAX_VOLUME', String(body.max_volume));
-  if (!Object.keys(patch).length) throw new Error('NO_INSTRUMENT_POLICY_FIELDS');
+  const extraPatch = {
+    ...(body.volume_step != null ? { volumeStep: String(body.volume_step) } : {}),
+    ...(body.swap_long != null ? { swapLong: String(body.swap_long) } : {}),
+    ...(body.swap_short != null ? { swapShort: String(body.swap_short) } : {}),
+    ...(body.commission != null ? { commission: String(body.commission) } : {}),
+    ...(body.spread_markup_pips != null ? { spreadMarkupPips: String(body.spread_markup_pips) } : {}),
+    ...(body.stops_level_pips != null ? { stopsLevelPips: String(body.stops_level_pips) } : {}),
+  };
+  if (!Object.keys(patch).length && !Object.keys(extraPatch).length) throw new Error('NO_INSTRUMENT_POLICY_FIELDS');
   const effMin = patch.minVolume ?? base.minVolume;
   const effMax = patch.maxVolume ?? base.maxVolume;
   if (fxDecimal(effMin).gt(effMax)) throw new Error('MIN_VOLUME_ABOVE_MAX_VOLUME');
-  const { previous, next } = setForexInstrumentPolicyOverride(symbol, patch);
+  const previousExtra = getForexInstrumentDeskExtra(symbol);
+  const previousPolicy: { maxLeverage?: string; minVolume?: string; maxVolume?: string } = Object.keys(patch).length
+    ? setForexInstrumentPolicyOverride(symbol, patch).previous
+    : {};
+  const nextExtra = Object.keys(extraPatch).length ? setForexInstrumentDeskExtra(symbol, extraPatch) : previousExtra;
+  void persistForexDeskPolicy();
   return {
     symbol: symbol.toUpperCase(),
     previous: {
-      maxLeverage: previous.maxLeverage,
-      minVolume: previous.minVolume,
-      maxVolume: previous.maxVolume,
+      maxLeverage: previousPolicy.maxLeverage,
+      minVolume: previousPolicy.minVolume,
+      maxVolume: previousPolicy.maxVolume,
+      volumeStep: previousExtra?.volumeStep,
+      swapLong: previousExtra?.swapLong,
+      swapShort: previousExtra?.swapShort,
+      commission: previousExtra?.commission,
+      spreadMarkupPips: previousExtra?.spreadMarkupPips,
+      stopsLevelPips: previousExtra?.stopsLevelPips,
     },
     next: {
-      maxLeverage: next.maxLeverage,
-      minVolume: next.minVolume,
-      maxVolume: next.maxVolume,
+      maxLeverage: patch.maxLeverage ?? base.maxLeverage,
+      minVolume: patch.minVolume ?? base.minVolume,
+      maxVolume: patch.maxVolume ?? base.maxVolume,
+      volumeStep: nextExtra?.volumeStep,
+      swapLong: nextExtra?.swapLong,
+      swapShort: nextExtra?.swapShort,
+      commission: nextExtra?.commission,
+      spreadMarkupPips: nextExtra?.spreadMarkupPips,
+      stopsLevelPips: nextExtra?.stopsLevelPips,
     },
   };
 }

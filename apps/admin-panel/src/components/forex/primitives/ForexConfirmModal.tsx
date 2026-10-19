@@ -47,7 +47,11 @@ export function ForexConfirmModal(props: {
       return;
     }
     setError(null);
-    await onConfirm(reason.trim());
+    try {
+      await onConfirm(reason.trim());
+    } catch (e) {
+      setError(e instanceof Error ? e.message : 'Update failed');
+    }
   };
 
   return (

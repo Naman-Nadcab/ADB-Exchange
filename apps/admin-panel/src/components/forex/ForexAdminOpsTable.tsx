@@ -10,6 +10,8 @@ import {
   getForexAdminOrders,
   getForexAdminPositions,
   forceCancelForexAdminOrder,
+  adminCloseForexPosition,
+  adminSetForexProtection,
   downloadForexAdminCsv,
   type ForexAdminExecutionRow,
   type ForexAdminOrderRow,
@@ -25,6 +27,7 @@ import { ForexDetailGrid } from '@/components/forex/primitives/ForexDetailGrid';
 import { ForexWorkspaceHeader } from '@/components/forex/primitives/ForexWorkspaceHeader';
 import { ForexFilterBar, ForexSectionLabel, ForexWorkspaceSurface } from '@/components/forex/primitives/forex-visual-kit';
 import { Modal } from '@/components/ui/Modal';
+import { ForexConfirmModal } from '@/components/forex/primitives/ForexConfirmModal';
 import Link from 'next/link';
 
 export type ForexOpsTableKind = 'orders' | 'executions' | 'positions';
@@ -95,6 +98,7 @@ export function ForexAdminOpsTable({
   const [detailOrder, setDetailOrder] = useState<ForexAdminOrderRow | null>(null);
   const [detailExec, setDetailExec] = useState<ForexAdminExecutionRow | null>(null);
   const [detailPos, setDetailPos] = useState<ForexAdminPositionRow | null>(null);
+  const [managerAction, setManagerAction] = useState<'close' | 'sl' | 'tp' | null>(null);
 
   useEffect(() => {
     const ac = searchParams.get('account_id')?.trim();
@@ -141,6 +145,31 @@ export function ForexAdminOpsTable({
       return res.data;
     },
     onSuccess: () => void qc.invalidateQueries({ queryKey: ['admin', 'forex', kind] }),
+  });
+
+  const managerM = useMutation({
+    mutationFn: async (args: { reason: string }) => {
+      if (!detailPos || !managerAction) throw new Error('No position');
+      if (managerAction === 'close') {
+        const volume = (document.getElementById('mgr-volume') as HTMLInputElement | null)?.value.trim();
+        const res = await adminCloseForexPosition(token, detailPos.position_id, { reason: args.reason, volume: volume || undefined });
+        if (!res.success) throw new Error(res.error?.message ?? 'Close failed');
+        return res.data;
+      }
+      const price = (document.getElementById(managerAction === 'sl' ? 'mgr-sl' : 'mgr-tp') as HTMLInputElement | null)?.value.trim() ?? '';
+      const res = await adminSetForexProtection(token, detailPos.position_id, {
+        reason: args.reason,
+        type: managerAction === 'sl' ? 'STOP_LOSS' : 'TAKE_PROFIT',
+        trigger_price: price,
+      });
+      if (!res.success) throw new Error(res.error?.message ?? 'Protection failed');
+      return res.data;
+    },
+    onSuccess: () => {
+      setManagerAction(null);
+      setDetailPos(null);
+      void qc.invalidateQueries({ queryKey: ['admin', 'forex'] });
+    },
   });
 
   const orderColumns = useMemo<ColumnDef<ForexAdminOrderRow>[]>(
@@ -457,6 +486,7 @@ export function ForexAdminOpsTable({
 
       <Modal open={!!detailPos} onClose={() => setDetailPos(null)} title="Position detail">
         {detailPos ? (
+          <>
           <ForexDetailGrid
             columns={2}
             items={[
@@ -473,8 +503,41 @@ export function ForexAdminOpsTable({
               { label: 'Updated', value: fmtTime(detailPos.updated_at) },
             ]}
           />
+          {detailPos.status === 'OPEN' ? (
+            <ProtectedAction permission="forex:dealing:manage" fallback="hidden">
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                <label className="text-xs text-admin-muted">
+                  Close volume
+                  <Input id="mgr-volume" className="mt-1 h-8 font-mono" placeholder="Blank = full" />
+                </label>
+                <label className="text-xs text-admin-muted">
+                  Stop loss
+                  <Input id="mgr-sl" className="mt-1 h-8 font-mono" placeholder="Price" />
+                </label>
+                <label className="text-xs text-admin-muted">
+                  Take profit
+                  <Input id="mgr-tp" className="mt-1 h-8 font-mono" placeholder="Price" />
+                </label>
+                <Button type="button" size="sm" variant="danger" onClick={() => setManagerAction('close')}>Close</Button>
+                <Button type="button" size="sm" variant="secondary" onClick={() => setManagerAction('sl')}>Set SL</Button>
+                <Button type="button" size="sm" variant="secondary" onClick={() => setManagerAction('tp')}>Set TP</Button>
+              </div>
+            </ProtectedAction>
+          ) : null}
+          </>
         ) : null}
       </Modal>
+      <ForexConfirmModal
+        open={!!managerAction && !!detailPos}
+        onClose={() => setManagerAction(null)}
+        title={managerAction === 'close' ? 'Manager close' : managerAction === 'sl' ? 'Set stop loss' : 'Set take profit'}
+        description={detailPos ? `${detailPos.symbol} · ${detailPos.position_id}` : undefined}
+        dangerous={managerAction === 'close'}
+        loading={managerM.isPending}
+        onConfirm={async (reason) => {
+          await managerM.mutateAsync({ reason });
+        }}
+      />
     </>
   );
 
