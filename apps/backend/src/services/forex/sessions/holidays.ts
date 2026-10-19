@@ -1,9 +1,9 @@
 /**
  * Forex holiday calendar.
  *
- * Does not invent holiday data. Coverage is UNCONFIGURED until dates are
- * supplied by a provider or operator. A production provider can hydrate
- * forex_holiday_dates later.
+ * Does not invent holiday data. Coverage is CONFIGURED when any date exists
+ * or when the operator trusts the list, including an empty list. A production
+ * provider can hydrate forex_holiday_dates later.
  *
  * Fail-closed:
  *   CONFIGURED + matching holiday/closure date → market closed
@@ -32,10 +32,13 @@ export interface ForexHolidayReadiness {
 
 let dates = new Map<string, ForexSessionException>();
 let requiredOverride: boolean | null = null;
+/** Operator reviewed an empty calendar. Dates still win when any row exists. */
+let coveragePin: ForexHolidayCoverage | null = null;
 
 export function resetForexSessionExceptionsForTests(): void {
   dates = new Map();
   requiredOverride = null;
+  coveragePin = null;
 }
 
 export function setForexHolidayRequiredForTests(required: boolean | null): void {
@@ -51,7 +54,12 @@ export function listForexSessionExceptions(): ForexSessionException[] {
 }
 
 export function holidayCoverage(): ForexHolidayCoverage {
-  return dates.size === 0 ? 'UNCONFIGURED' : 'CONFIGURED';
+  if (dates.size > 0) return 'CONFIGURED';
+  return coveragePin === 'CONFIGURED' ? 'CONFIGURED' : 'UNCONFIGURED';
+}
+
+export function setForexHolidayCoveragePin(next: ForexHolidayCoverage | null): void {
+  coveragePin = next === 'CONFIGURED' ? 'CONFIGURED' : null;
 }
 
 export function holidayRequired(): boolean {
@@ -82,6 +90,8 @@ export async function hydrateForexHolidayCalendar(client?: ForexQueryable): Prom
     if (row?.required != null && requiredOverride == null) {
       requiredOverride = Boolean(row.required);
     }
+    if (row?.coverage === 'CONFIGURED') coveragePin = 'CONFIGURED';
+    else if (row?.coverage === 'UNCONFIGURED') coveragePin = null;
     const rows = await q.query(`SELECT calendar_date, kind, notes FROM forex_holiday_dates`);
     dates = new Map();
     for (const raw of rows.rows as Array<{ calendar_date: string | Date; kind: string; notes?: string | null }>) {
@@ -93,9 +103,7 @@ export async function hydrateForexHolidayCalendar(client?: ForexQueryable): Prom
         dates.set(date, { date, kind: raw.kind, notes: raw.notes ?? undefined });
       }
     }
-    if (row?.coverage === 'CONFIGURED' && dates.size === 0) {
-      /* explicit configured-empty is still CONFIGURED with no closable dates */
-    }
+    /* An empty calendar the operator marked CONFIGURED stays trusted via coveragePin. */
   } catch {
     /* table may not exist until migrate; remain UNCONFIGURED */
     if (dates.size === 0) {

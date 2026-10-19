@@ -48,6 +48,14 @@ export type ForexDeskSessionWindow = {
   close: string;
 };
 
+export type ForexTradeMode = 'FULL' | 'CLOSE_ONLY' | 'DISABLED' | 'LONG_ONLY' | 'SHORT_ONLY';
+
+export type ForexNewsWindow = {
+  start: string;
+  end: string;
+  title?: string;
+};
+
 export type ForexInstrumentDeskExtra = {
   volumeStep?: string;
   swapLong?: string;
@@ -64,6 +72,11 @@ export type ForexInstrumentDeskExtra = {
   swapModel?: 'points' | 'account_currency';
   tradeSession?: ForexDeskSessionWindow;
   quoteSession?: ForexDeskSessionWindow;
+  tradeMode?: ForexTradeMode;
+  freezeLevelPips?: string;
+  gapLevelPips?: string;
+  symbolGroup?: string;
+  newsWindow?: ForexNewsWindow;
 };
 
 const DEFAULT_ORDER_POLICY: ForexDeskOrderPolicy = {
@@ -99,6 +112,14 @@ function positiveOrZero(field: string, raw: string, allowZero: boolean): string 
   const n = fxDecimal(v);
   if (!n.isFinite() || (allowZero ? n.lt(0) : n.lte(0))) throw new Error(`INVALID_${field}`);
   return v;
+}
+
+/** Blank or numeric zero turns a freeze/gap check off. A zero spread is unrelated. */
+function clearedPipLevel(raw: string | null): boolean {
+  if (raw == null) return true;
+  const v = raw.trim();
+  if (v === '') return true;
+  return /^\d+(\.\d+)?$/.test(v) && fxDecimal(v).eq(0);
 }
 
 export function getForexBookMode(): ForexBookMode {
@@ -184,9 +205,14 @@ export function setForexDeskOrderPolicy(patch: Partial<ForexDeskOrderPolicy>): F
 
 export function setForexInstrumentDeskExtra(
   symbol: string,
-  patch: Omit<ForexInstrumentDeskExtra, 'tradeSession' | 'quoteSession'> & {
+  patch: Omit<ForexInstrumentDeskExtra, 'tradeSession' | 'quoteSession' | 'tradeMode' | 'freezeLevelPips' | 'gapLevelPips' | 'symbolGroup' | 'newsWindow'> & {
     tradeSession?: ForexDeskSessionWindow | null;
     quoteSession?: ForexDeskSessionWindow | null;
+    tradeMode?: ForexTradeMode | null;
+    freezeLevelPips?: string | null;
+    gapLevelPips?: string | null;
+    symbolGroup?: string | null;
+    newsWindow?: ForexNewsWindow | null;
   },
 ): ForexInstrumentDeskExtra {
   const sym = normSymbol(symbol);
@@ -222,6 +248,26 @@ export function setForexInstrumentDeskExtra(
   else if (patch.tradeSession != null) next.tradeSession = parseSessionWindow(patch.tradeSession);
   if (patch.quoteSession === null) delete next.quoteSession;
   else if (patch.quoteSession != null) next.quoteSession = parseSessionWindow(patch.quoteSession);
+  if (patch.tradeMode === null) delete next.tradeMode;
+  else if (patch.tradeMode != null) {
+    if (!['FULL', 'CLOSE_ONLY', 'DISABLED', 'LONG_ONLY', 'SHORT_ONLY'].includes(patch.tradeMode)) throw new Error('INVALID_TRADE_MODE');
+    if (patch.tradeMode === 'FULL') delete next.tradeMode;
+    else next.tradeMode = patch.tradeMode;
+  }
+  if (patch.freezeLevelPips !== undefined && clearedPipLevel(patch.freezeLevelPips)) delete next.freezeLevelPips;
+  else if (patch.freezeLevelPips != null) next.freezeLevelPips = positiveOrZero('FREEZE_LEVEL', patch.freezeLevelPips, false);
+  if (patch.gapLevelPips !== undefined && clearedPipLevel(patch.gapLevelPips)) delete next.gapLevelPips;
+  else if (patch.gapLevelPips != null) next.gapLevelPips = positiveOrZero('GAP_LEVEL', patch.gapLevelPips, false);
+  if (patch.symbolGroup !== undefined) {
+    if (patch.symbolGroup == null || patch.symbolGroup.trim() === '') delete next.symbolGroup;
+    else {
+      const group = patch.symbolGroup.trim();
+      if (group.length > 32 || !/^[A-Za-z0-9 _-]+$/.test(group)) throw new Error('INVALID_SYMBOL_GROUP');
+      next.symbolGroup = group;
+    }
+  }
+  if (patch.newsWindow === null) delete next.newsWindow;
+  else if (patch.newsWindow != null) next.newsWindow = parseNewsWindow(patch.newsWindow);
   extras.set(sym, next);
   void applyExtraToEngines(sym, next);
   void persistForexDeskPolicy();
@@ -272,6 +318,79 @@ export function isForexTradeSessionOpen(symbol: string, now = new Date()): boole
 
 export function isForexQuoteSessionOpen(symbol: string, now = new Date()): boolean {
   return isForexDeskWindowOpen(getForexInstrumentDeskExtra(symbol)?.quoteSession, now);
+}
+
+function parseNewsWindow(raw: ForexNewsWindow): ForexNewsWindow {
+  const startMs = Date.parse(String(raw.start ?? ''));
+  const endMs = Date.parse(String(raw.end ?? ''));
+  if (!Number.isFinite(startMs) || !Number.isFinite(endMs) || endMs <= startMs) throw new Error('INVALID_NEWS_WINDOW');
+  const title = raw.title?.trim().slice(0, 80);
+  return { start: new Date(startMs).toISOString(), end: new Date(endMs).toISOString(), ...(title ? { title } : {}) };
+}
+
+export type ForexDeskEntryBlock = {
+  reason: 'NEW_ORDERS_DISABLED' | 'BUY_DISABLED' | 'SELL_DISABLED' | 'PRICE_DEVIATION_LIMIT';
+  detail: string;
+};
+
+/** Symbol trade mode, news window, and freeze. A zero spread does not invent a freeze distance. */
+export function forexSymbolEntryBlock(args: {
+  symbol: string;
+  side: 'buy' | 'sell';
+  orderType: string;
+  requestedPrice?: string | null;
+  reduceOnly: boolean;
+  quote?: { bid: string; ask: string } | null;
+  now?: Date;
+}): ForexDeskEntryBlock | null {
+  const extra = getForexInstrumentDeskExtra(args.symbol);
+  const mode = extra?.tradeMode ?? 'FULL';
+  if (!args.reduceOnly && mode === 'DISABLED') return { reason: 'NEW_ORDERS_DISABLED', detail: 'symbol trade mode is disabled' };
+  if (!args.reduceOnly && mode === 'CLOSE_ONLY') return { reason: 'NEW_ORDERS_DISABLED', detail: 'symbol is close only' };
+  if (!args.reduceOnly && mode === 'LONG_ONLY' && args.side === 'sell') return { reason: 'SELL_DISABLED', detail: 'symbol is long only' };
+  if (!args.reduceOnly && mode === 'SHORT_ONLY' && args.side === 'buy') return { reason: 'BUY_DISABLED', detail: 'symbol is short only' };
+  const news = extra?.newsWindow;
+  if (!args.reduceOnly && news) {
+    const now = (args.now ?? new Date()).getTime();
+    const start = Date.parse(news.start);
+    const end = Date.parse(news.end);
+    if (Number.isFinite(start) && Number.isFinite(end) && now >= start && now < end) {
+      return { reason: 'NEW_ORDERS_DISABLED', detail: news.title ? `news filter: ${news.title}` : 'news filter' };
+    }
+  }
+  const freeze = extra?.freezeLevelPips;
+  const pending = args.orderType !== 'market';
+  const quote = args.quote;
+  if (pending && freeze && quote) {
+    const bid = fxDecimal(quote.bid);
+    const ask = fxDecimal(quote.ask);
+    if (ask.gt(bid)) {
+      const priceRaw = args.requestedPrice?.trim();
+      if (priceRaw) {
+        const pip = fxDecimal(extra?.pipSize || '0.0001');
+        if (pip.gt(0)) {
+          const market = args.side === 'buy' ? ask : bid;
+          const distance = fxDecimal(priceRaw).minus(market).abs().div(pip);
+          if (distance.lt(freeze)) return { reason: 'PRICE_DEVIATION_LIMIT', detail: 'inside freeze level' };
+        }
+      }
+    }
+  }
+  return null;
+}
+
+/** Stop activation when the jump from the trigger to the executable price is wider than the gap level. */
+export function forexStopGapBlock(symbol: string, orderType: string, side: 'buy' | 'sell', trigger: string | null | undefined, execPrice: string): string | null {
+  if (orderType !== 'stop' && orderType !== 'stop_limit') return null;
+  const extra = getForexInstrumentDeskExtra(symbol);
+  const gap = extra?.gapLevelPips;
+  const triggerRaw = trigger?.trim();
+  if (!gap || !triggerRaw) return null;
+  const pip = fxDecimal(extra?.pipSize || '0.0001');
+  if (!pip.gt(0)) return null;
+  const jump = fxDecimal(execPrice).minus(triggerRaw).abs().div(pip);
+  if (jump.gt(gap)) return 'gap level';
+  return null;
 }
 
 /** Widen an existing bid/ask. A zero spread is left unchanged so a mock quote is not painted. */

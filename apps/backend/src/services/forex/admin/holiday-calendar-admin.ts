@@ -2,7 +2,7 @@
  * Admin holiday calendar (DB-backed; sets coverage CONFIGURED when dates exist).
  */
 import { db } from '../../../lib/database.js';
-import { hydrateForexHolidayCalendar } from '../sessions/holidays.js';
+import { hydrateForexHolidayCalendar, setForexHolidayCoveragePin } from '../sessions/holidays.js';
 
 export async function listForexHolidayDates(limit = 100) {
   const res = await db.query<{ calendar_date: string; kind: string; notes: string | null }>(
@@ -35,6 +35,18 @@ export async function upsertForexHolidayDate(input: { date: string; kind: string
   );
   await hydrateForexHolidayCalendar();
   return { calendar_date: date, kind };
+}
+
+/** Trust the calendar the operator can see, including an empty list. Does not invent dates. */
+export async function trustForexHolidayCalendar(): Promise<{ coverage: 'CONFIGURED' }> {
+  await db.query(
+    `INSERT INTO forex_holiday_calendar_state (id, coverage, required, updated_at)
+     VALUES (1, 'CONFIGURED', COALESCE((SELECT required FROM forex_holiday_calendar_state WHERE id = 1), FALSE), NOW())
+     ON CONFLICT (id) DO UPDATE SET coverage = 'CONFIGURED', updated_at = NOW()`,
+  );
+  setForexHolidayCoveragePin('CONFIGURED');
+  await hydrateForexHolidayCalendar();
+  return { coverage: 'CONFIGURED' };
 }
 
 export async function deleteForexHolidayDate(date: string) {

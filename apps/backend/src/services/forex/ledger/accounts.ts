@@ -2,6 +2,7 @@
  * Forex chart of accounts. Broker-book view.
  *
  * CUSTOMER_CASH (liability): we owe the customer. Credit increases customer balance.
+ * CUSTOMER_CREDIT (liability): bonus or credit line. It is not cash and cannot be withdrawn.
  * CLEARING (asset/clearing): counterpart for simulated funding and withdrawals.
  * REALIZED_PNL (income/expense): offset for customer P&L.
  * FEE_REVENUE (income): customer commissions when configured.
@@ -10,6 +11,7 @@
  */
 export const FOREX_LEDGER_ACCOUNTS = [
   'CUSTOMER_CASH',
+  'CUSTOMER_CREDIT',
   'CLEARING',
   'REALIZED_PNL',
   'FEE_REVENUE',

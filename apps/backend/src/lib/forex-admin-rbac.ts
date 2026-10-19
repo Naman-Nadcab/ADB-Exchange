@@ -77,7 +77,7 @@ export function hasForexAdminPermission(role: string, required: ForexAdminPermis
 
 /** Map admin API forex write routes to canonical manage permission. */
 export function forexAdminWritePermissionForPath(relativePath: string): ForexAdminPermission {
-  if (/\/account-groups/.test(relativePath) || /\/accounts\/[^/]+\/(group|leverage-override)/.test(relativePath)) {
+  if (/\/account-groups/.test(relativePath) || /\/accounts\/[^/]+\/(group|leverage-override|trade-rights)/.test(relativePath)) {
     return 'forex:accounts:manage';
   }
   if (/\/crm\/(leads|notes|tags|tasks)/.test(relativePath)) return 'forex:crm:manage';

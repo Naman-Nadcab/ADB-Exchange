@@ -164,6 +164,17 @@ export async function loadAllLedgerTransactions(client?: ForexQueryable): Promis
   return out;
 }
 
+export async function customerCreditBalanceFromDb(accountId: string, client?: ForexQueryable): Promise<string> {
+  const q = fxq(client);
+  const res = await q.query(
+    `SELECT COALESCE(SUM(credit - debit), 0) AS bal
+     FROM forex_ledger_entries
+     WHERE ledger_account = 'CUSTOMER_CREDIT' AND account_id = $1`,
+    [accountId],
+  );
+  return String((res.rows[0] as { bal?: unknown } | undefined)?.bal ?? '0');
+}
+
 export async function customerCashBalanceFromDb(accountId: string, client?: ForexQueryable): Promise<string> {
   const q = fxq(client);
   const res = await q.query(

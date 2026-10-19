@@ -10,6 +10,7 @@ import {
   getForexAdminOrders,
   getForexAdminPositions,
   forceCancelForexAdminOrder,
+  adminCloseByForexPosition,
   adminCloseForexPosition,
   adminModifyForexOrder,
   adminPlaceForexOrder,
@@ -100,7 +101,7 @@ export function ForexAdminOpsTable({
   const [detailOrder, setDetailOrder] = useState<ForexAdminOrderRow | null>(null);
   const [detailExec, setDetailExec] = useState<ForexAdminExecutionRow | null>(null);
   const [detailPos, setDetailPos] = useState<ForexAdminPositionRow | null>(null);
-  const [managerAction, setManagerAction] = useState<'close' | 'sl' | 'tp' | null>(null);
+  const [managerAction, setManagerAction] = useState<'close' | 'closeby' | 'sl' | 'tp' | null>(null);
   const [orderAction, setOrderAction] = useState(false);
   const [placeOpen, setPlaceOpen] = useState(false);
   const [placeAccount, setPlaceAccount] = useState('');
@@ -165,6 +166,18 @@ export function ForexAdminOpsTable({
         const volume = (document.getElementById('mgr-volume') as HTMLInputElement | null)?.value.trim();
         const res = await adminCloseForexPosition(token, detailPos.position_id, { reason: args.reason, volume: volume || undefined });
         if (!res.success) throw new Error(res.error?.message ?? 'Close failed');
+        return res.data;
+      }
+      if (managerAction === 'closeby') {
+        const opposite = (document.getElementById('mgr-opposite') as HTMLInputElement | null)?.value.trim() ?? '';
+        const volume = (document.getElementById('mgr-volume') as HTMLInputElement | null)?.value.trim();
+        if (!opposite) throw new Error('Opposite position id is required');
+        const res = await adminCloseByForexPosition(token, detailPos.position_id, {
+          reason: args.reason,
+          opposite_position_id: opposite,
+          ...(volume ? { volume } : {}),
+        });
+        if (!res.success) throw new Error(res.error?.message ?? 'Close By failed');
         return res.data;
       }
       const price = (document.getElementById(managerAction === 'sl' ? 'mgr-sl' : 'mgr-tp') as HTMLInputElement | null)?.value.trim() ?? '';
@@ -610,6 +623,12 @@ export function ForexAdminOpsTable({
                   Close volume
                   <Input id="mgr-volume" className="mt-1 h-8 font-mono" placeholder="Blank = full" />
                 </label>
+                {detailPos.mode.toUpperCase() === 'HEDGING' ? (
+                  <label className="text-xs text-admin-muted sm:col-span-2">
+                    Opposite position
+                    <Input id="mgr-opposite" className="mt-1 h-8 font-mono" placeholder="Hedging position on the other side" />
+                  </label>
+                ) : null}
                 <label className="text-xs text-admin-muted">
                   Stop loss
                   <Input id="mgr-sl" className="mt-1 h-8 font-mono" placeholder="Price" />
@@ -623,6 +642,9 @@ export function ForexAdminOpsTable({
                   <Input id="mgr-tp" className="mt-1 h-8 font-mono" placeholder="Price" />
                 </label>
                 <Button type="button" size="sm" variant="danger" onClick={() => setManagerAction('close')}>Close</Button>
+                {detailPos.mode.toUpperCase() === 'HEDGING' ? (
+                  <Button type="button" size="sm" variant="secondary" onClick={() => setManagerAction('closeby')}>Close By</Button>
+                ) : null}
                 <Button type="button" size="sm" variant="secondary" onClick={() => setManagerAction('sl')}>Set SL</Button>
                 <Button type="button" size="sm" variant="secondary" onClick={() => setManagerAction('tp')}>Set TP</Button>
               </div>
@@ -634,9 +656,9 @@ export function ForexAdminOpsTable({
       <ForexConfirmModal
         open={!!managerAction && !!detailPos}
         onClose={() => setManagerAction(null)}
-        title={managerAction === 'close' ? 'Manager close' : managerAction === 'sl' ? 'Set stop loss' : 'Set take profit'}
+        title={managerAction === 'close' ? 'Manager close' : managerAction === 'closeby' ? 'Close By' : managerAction === 'sl' ? 'Set stop loss' : 'Set take profit'}
         description={detailPos ? `${detailPos.symbol} · ${detailPos.position_id}` : undefined}
-        dangerous={managerAction === 'close'}
+        dangerous={managerAction === 'close' || managerAction === 'closeby'}
         loading={managerM.isPending}
         onConfirm={async (reason) => {
           await managerM.mutateAsync({ reason });

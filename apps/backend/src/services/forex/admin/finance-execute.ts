@@ -9,6 +9,7 @@ import type { ForexFinanceRequestKind } from './finance-requests.js';
 
 const CREDIT_KINDS = new Set<ForexFinanceRequestKind>(['DEPOSIT', 'CREDIT', 'ADJUSTMENT']);
 const DEBIT_KINDS = new Set<ForexFinanceRequestKind>(['WITHDRAWAL', 'DEBIT', 'FEE']);
+const CREDIT_LINE_KINDS = new Set<ForexFinanceRequestKind>(['CREDIT_LINE', 'CREDIT_LINE_RECALL']);
 
 export type FinanceExecuteResult = {
   request_id: string;
@@ -41,7 +42,11 @@ export async function executeForexFinanceRequest(requestId: string, approvalRequ
     throw new Error('APPROVAL_MISMATCH');
   }
   if (row.ledger_transaction_id) {
-    const bal = await import('../ledger/persist.js').then((m) => m.customerCashBalanceFromDb(String(row.account_id)));
+    const persisted = await import('../ledger/persist.js');
+    const line = CREDIT_LINE_KINDS.has(String(row.kind).toUpperCase() as ForexFinanceRequestKind);
+    const bal = line
+      ? await persisted.customerCreditBalanceFromDb(String(row.account_id))
+      : await persisted.customerCashBalanceFromDb(String(row.account_id));
     return {
       request_id: id,
       account_id: String(row.account_id),
@@ -66,7 +71,16 @@ export async function executeForexFinanceRequest(requestId: string, approvalRequ
 
   try {
     let tx;
-    if (CREDIT_KINDS.has(kind)) {
+    if (CREDIT_LINE_KINDS.has(kind)) {
+      tx = await accounting.postCreditLineMovement({
+        accountId,
+        amount,
+        direction: kind === 'CREDIT_LINE' ? 'credit' : 'debit',
+        idempotencyKey,
+        referenceId: id,
+        metadata: { financeRequestId: id, approvalRequestId, kind },
+      });
+    } else if (CREDIT_KINDS.has(kind)) {
       const ledgerType = kind === 'DEPOSIT' ? 'DEPOSIT' : 'ADJUSTMENT';
       tx = await accounting.postAdminFinanceMovement({
         accountId,
@@ -101,13 +115,16 @@ export async function executeForexFinanceRequest(requestId: string, approvalRequ
       [id, tx.transactionId, JSON.stringify({ executedAt: new Date().toISOString(), fingerprint: tx.fingerprint })],
     );
 
-    const { customerCashBalanceFromDb } = await import('../ledger/persist.js');
+    const persisted = await import('../ledger/persist.js');
+    const balanceAfter = CREDIT_LINE_KINDS.has(kind)
+      ? await persisted.customerCreditBalanceFromDb(accountId)
+      : await persisted.customerCashBalanceFromDb(accountId);
     return {
       request_id: id,
       account_id: accountId,
       ledger_transaction_id: tx.transactionId,
       status: 'COMPLETED',
-      balance_after: await customerCashBalanceFromDb(accountId),
+      balance_after: balanceAfter,
     };
   } catch (e) {
     const msg = e instanceof Error ? e.message : 'EXECUTE_FAILED';

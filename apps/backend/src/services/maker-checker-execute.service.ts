@@ -214,6 +214,7 @@ export async function executeMakerCheckerIfFullyApproved(req: ApprovalRequest): 
     'forex_routing_patch',
     'forex_account_group_change',
     'forex_leverage_change',
+    'forex_trade_rights',
     'forex_finance_request',
     'forex_partner_payout',
   ]);

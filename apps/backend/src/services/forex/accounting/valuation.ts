@@ -16,7 +16,7 @@ export const FOREX_VALUATION_POLICY = {
   longExecutableClose: 'BID',
   shortExecutableClose: 'ASK',
   usedMargin: 'UNMATCHED_LOTS_ONLY',
-  equity: 'CUSTOMER_CASH + UNREALIZED_PNL',
+  equity: 'CUSTOMER_CASH + CUSTOMER_CREDIT + UNREALIZED_PNL',
   freeMargin: 'EQUITY - USED_MARGIN',
   availableBalance: 'FREE_MARGIN',
   midNeverDrivesLiquidationEquity: true,

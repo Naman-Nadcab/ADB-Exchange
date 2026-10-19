@@ -120,6 +120,51 @@ export class ForexAccountingService {
   }
 
   /** Admin-approved finance cashier movements (Forex ledger only; idempotent). */
+  async postCreditLineMovement(args: {
+    accountId: string;
+    amount: string;
+    direction: 'credit' | 'debit';
+    idempotencyKey: string;
+    referenceId: string;
+    metadata?: Record<string, unknown>;
+  }): Promise<ForexLedgerTransaction> {
+    this.ensureAccount(args.accountId);
+    const amount = requirePositive(args.amount);
+    const ref = args.referenceId;
+    const entries =
+      args.direction === 'credit'
+        ? [
+            { ledgerAccount: 'CLEARING' as const, debit: amount, credit: '0', referenceType: 'ADJUSTMENT', referenceId: ref },
+            {
+              ledgerAccount: 'CUSTOMER_CREDIT' as const,
+              accountId: args.accountId,
+              debit: '0',
+              credit: amount,
+              referenceType: 'ADJUSTMENT',
+              referenceId: ref,
+            },
+          ]
+        : [
+            {
+              ledgerAccount: 'CUSTOMER_CREDIT' as const,
+              accountId: args.accountId,
+              debit: amount,
+              credit: '0',
+              referenceType: 'ADJUSTMENT',
+              referenceId: ref,
+            },
+            { ledgerAccount: 'CLEARING' as const, debit: '0', credit: amount, referenceType: 'ADJUSTMENT', referenceId: ref },
+          ];
+    return this.ledger.post({
+      idempotencyKey: args.idempotencyKey,
+      type: 'ADJUSTMENT',
+      accountId: args.accountId,
+      currency: ACCOUNTING_CURRENCY,
+      entries,
+      metadata: { ...args.metadata, ledger: 'CUSTOMER_CREDIT' },
+    });
+  }
+
   async postAdminFinanceMovement(args: {
     accountId: string;
     amount: string;
@@ -382,10 +427,11 @@ export class ForexAccountingService {
 
   riskInputs(accountId: string): { equity?: string; accountingAvailable: boolean; ledgerBalance: string } {
     const cash = this.ledgerBalance(accountId);
+    const funds = fxDecimal(cash).plus(this.ledger.customerCreditBalance(accountId)).toFixed();
     const open = this.positions.listOwned(accountId, true);
-    // Flat funded accounts must use CUSTOMER_CASH even if mark-to-market is unavailable.
+    // Flat funded accounts use cash plus the separate credit line even if mark-to-market is unavailable.
     if (open.length === 0) {
-      return { equity: cash, accountingAvailable: true, ledgerBalance: cash };
+      return { equity: funds, accountingAvailable: true, ledgerBalance: cash };
     }
     const view = this.tryAccountView(accountId);
     if (!view || view.calculationStatus !== 'CALCULATED') {
@@ -800,11 +846,12 @@ export class ForexAccountingService {
       const positions = this.positions.listOwned(accountId, true);
       const u = this.unrealized(accountId);
       const ledgerBalance = this.ledgerBalance(accountId);
+      const funds = fxDecimal(ledgerBalance).plus(this.ledger.customerCreditBalance(accountId));
       const realizedPnl = this.realizedPosted(accountId);
       const decision = evaluateAccountRisk({
         accountId,
         positions,
-        equity: u.calculationStatus === 'CALCULATED' ? fxDecimal(ledgerBalance).plus(u.accountPnl).toFixed() : undefined,
+        equity: u.calculationStatus === 'CALCULATED' ? funds.plus(u.accountPnl).toFixed() : undefined,
         accountingAvailable: u.calculationStatus === 'CALCULATED',
       });
       if (u.calculationStatus !== 'CALCULATED') {
@@ -813,7 +860,7 @@ export class ForexAccountingService {
           currency: ACCOUNTING_CURRENCY,
           ledgerBalance,
           availableBalance: ledgerBalance,
-          equity: ledgerBalance,
+          equity: funds.toFixed(),
           usedMargin: decision.usedMargin,
           freeMargin: '0',
           marginLevel: null,
@@ -828,7 +875,7 @@ export class ForexAccountingService {
           conversionSource: u.items[0]?.conversionSource ?? 'UNAVAILABLE',
         };
       }
-      const equity = fxDecimal(ledgerBalance).plus(u.accountPnl).toFixed();
+      const equity = funds.plus(u.accountPnl).toFixed();
       const used = decision.usedMargin;
       const free = fxDecimal(equity).minus(used).toFixed();
       return {

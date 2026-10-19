@@ -2,7 +2,7 @@
  * Forex trading accounts — operator list with balances and activity signals.
  */
 import { db } from '../../../lib/database.js';
-import { customerCashBalanceFromDb } from '../ledger/persist.js';
+import { customerCashBalanceFromDb, customerCreditBalanceFromDb } from '../ledger/persist.js';
 
 export type ForexAdminTradingAccountRow = {
   account_id: string;
@@ -11,7 +11,10 @@ export type ForexAdminTradingAccountRow = {
   status: string;
   group_code: string | null;
   leverage_default: string | null;
+  leverage_override: string | null;
+  trade_rights: string;
   customer_cash_balance: string;
+  customer_credit_balance: string;
   open_positions: number;
   open_orders: number;
   last_activity_at: string | null;
@@ -53,6 +56,7 @@ export async function listForexAdminTradingAccounts(raw: {
 
   const res = await db.query(
     `SELECT fa.account_id, fa.user_id, fa.currency, fa.status, fa.created_at,
+            fa.leverage_override, COALESCE(fa.trade_rights, 'ENABLED') AS trade_rights,
             g.code AS group_code, g.leverage_default::text AS leverage_default,
             (SELECT COUNT(*)::int FROM forex_positions p WHERE p.account_id = fa.account_id AND p.status = 'OPEN') AS open_positions,
             (SELECT COUNT(*)::int FROM forex_orders o WHERE o.account_id = fa.account_id AND o.status NOT IN ('FILLED','REJECTED','CANCELLED','FAILED')) AS open_orders,
@@ -72,6 +76,7 @@ export async function listForexAdminTradingAccounts(raw: {
   for (const r of res.rows as Record<string, unknown>[]) {
     const accountId = String(r.account_id);
     const balance = await customerCashBalanceFromDb(accountId);
+    const credit = await customerCreditBalanceFromDb(accountId);
     rows.push({
       account_id: accountId,
       user_id: r.user_id == null ? null : String(r.user_id),
@@ -79,7 +84,10 @@ export async function listForexAdminTradingAccounts(raw: {
       status: String(r.status),
       group_code: r.group_code == null ? null : String(r.group_code),
       leverage_default: r.leverage_default == null ? null : String(r.leverage_default),
+      leverage_override: r.leverage_override == null ? null : String(r.leverage_override),
+      trade_rights: String(r.trade_rights ?? 'ENABLED'),
       customer_cash_balance: balance,
+      customer_credit_balance: credit,
       open_positions: Number(r.open_positions ?? 0) || 0,
       open_orders: Number(r.open_orders ?? 0) || 0,
       last_activity_at:
@@ -95,6 +103,6 @@ export async function listForexAdminTradingAccounts(raw: {
   return {
     rows,
     pagination: { page, limit, total, totalPages: Math.max(1, Math.ceil(total / limit)) },
-    note: 'Balances from CUSTOMER_CASH ledger · isolated from crypto wallets',
+    note: 'Cash is CUSTOMER_CASH. Credit line is CUSTOMER_CREDIT and is not a withdrawal.',
   };
 }

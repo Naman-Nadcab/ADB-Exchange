@@ -1,8 +1,9 @@
 #!/bin/sh
 # Runs on the production VPS over SSH. Does not print .env values.
 # Modes: deploy | rollback
-# Records a backup point, then rebuilds only the backend and admin images.
-# It does not run production.yml, migrations, or restart the customer frontend.
+# Records a backup point, applies the compiled migration one-shot, then
+# rebuilds only the backend and admin images.
+# It does not run production.yml or restart the customer frontend.
 set -eu
 
 APP=${DESK_APP:-/opt/adb-exchange}
@@ -284,6 +285,15 @@ if [ -n "$disallowed" ]; then
 fi
 if [ -z "$server_files" ]; then
   fail "EMPTY_DIFF"
+fi
+
+if [ "$MODE" != "admin" ]; then
+  docker rm -f exchange-migrate >/dev/null 2>&1 || true
+  echo "MIGRATE_START"
+  if ! docker compose -f docker-compose.production.yml --profile tools run --rm --no-deps --build migrate; then
+    fail "MIGRATE_FAILED"
+  fi
+  echo "MIGRATE_OK"
 fi
 
 if [ "$MODE" != "admin" ]; then

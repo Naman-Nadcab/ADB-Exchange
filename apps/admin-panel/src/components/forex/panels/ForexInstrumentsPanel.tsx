@@ -42,6 +42,11 @@ export type ForexInstrumentRow = {
   contractSize?: string;
   commissionModel?: string;
   swapModel?: string;
+  tradeMode?: string;
+  freezeLevelPips?: string;
+  gapLevelPips?: string;
+  symbolGroup?: string;
+  newsWindow?: { start?: string; end?: string; title?: string } | null;
   overridden?: boolean;
 };
 
@@ -132,7 +137,7 @@ export function ForexInstrumentsPanel() {
   });
 
   const contractM = useMutation({
-    mutationFn: async (args: { symbol: string; reason: string; volume_step: string; swap_long: string; swap_short: string; commission: string; spread_markup_pips: string; stops_level_pips: string; digits: string; pip_size: string; tick_size: string; contract_size: string; margin_percent: string; commission_model: string; swap_model: string }) => {
+    mutationFn: async (args: { symbol: string; reason: string; volume_step: string; swap_long: string; swap_short: string; commission: string; spread_markup_pips: string; stops_level_pips: string; digits: string; pip_size: string; tick_size: string; contract_size: string; margin_percent: string; commission_model: string; swap_model: string; trade_mode: string; freeze_level_pips: string; gap_level_pips: string; symbol_group: string; news_start: string; news_end: string; news_title: string }) => {
       const res = await patchForexInstrumentPolicy(token, args.symbol, args);
       if (!res.success) throw new Error(res.error?.message ?? 'Contract update failed');
       return res.data;
@@ -326,6 +331,22 @@ export function ForexInstrumentsPanel() {
                 <option value="points">points</option>
               </select>
             </label>
+            <label className="text-xs text-admin-muted">
+              Trade mode
+              <select id="contract-mode" className="mt-1 h-8 w-full rounded border border-admin-border bg-admin-bg px-2 text-sm" defaultValue={detail.tradeMode ?? 'FULL'}>
+                <option value="FULL">FULL</option>
+                <option value="CLOSE_ONLY">CLOSE_ONLY</option>
+                <option value="LONG_ONLY">LONG_ONLY</option>
+                <option value="SHORT_ONLY">SHORT_ONLY</option>
+                <option value="DISABLED">DISABLED</option>
+              </select>
+            </label>
+            <label className="text-xs text-admin-muted">Symbol group<Input id="contract-group" className="mt-1 h-8" defaultValue={detail.symbolGroup ?? ''} placeholder="Forex" /></label>
+            <label className="text-xs text-admin-muted">Freeze pips<Input id="contract-freeze" className="mt-1 h-8 font-mono" defaultValue={detail.freezeLevelPips ?? '0'} /></label>
+            <label className="text-xs text-admin-muted">Gap pips<Input id="contract-gap" className="mt-1 h-8 font-mono" defaultValue={detail.gapLevelPips ?? '0'} /></label>
+            <label className="text-xs text-admin-muted">News start UTC<Input id="contract-news-start" className="mt-1 h-8 font-mono" defaultValue={detail.newsWindow?.start ?? ''} placeholder="2026-10-19T14:00:00Z" /></label>
+            <label className="text-xs text-admin-muted">News end UTC<Input id="contract-news-end" className="mt-1 h-8 font-mono" defaultValue={detail.newsWindow?.end ?? ''} placeholder="2026-10-19T15:00:00Z" /></label>
+            <label className="text-xs text-admin-muted sm:col-span-2">News title<Input id="contract-news-title" className="mt-1 h-8" defaultValue={detail.newsWindow?.title ?? ''} placeholder="Optional. Blank start and end clears the filter." /></label>
           </div>
         ) : null}
         {contractError ? <p className="mt-2 text-sm text-red-400">{contractError}</p> : null}
@@ -360,6 +381,18 @@ export function ForexInstrumentsPanel() {
                 }
                 if (![swap_long, swap_short].every((v) => /^-?\d+(\.\d+)?$/.test(v))) {
                   setContractError('Swap long and short must be numbers.');
+                  return;
+                }
+                const freeze = read('contract-freeze') || '0';
+                const gap = read('contract-gap') || '0';
+                if (![freeze, gap].every((v) => /^\d+(\.\d+)?$/.test(v))) {
+                  setContractError('Freeze and gap must be numbers. Zero turns the check off.');
+                  return;
+                }
+                const newsStart = read('contract-news-start');
+                const newsEnd = read('contract-news-end');
+                if ((newsStart && !newsEnd) || (!newsStart && newsEnd)) {
+                  setContractError('News filter needs both a start and an end, or leave both blank.');
                   return;
                 }
                 setContractError(null);
@@ -418,6 +451,13 @@ export function ForexInstrumentsPanel() {
             margin_percent: read('contract-margin'),
             commission_model: (document.getElementById('contract-comm-model') as HTMLSelectElement | null)?.value ?? 'per_lot',
             swap_model: (document.getElementById('contract-swap-model') as HTMLSelectElement | null)?.value ?? 'account_currency',
+            trade_mode: (document.getElementById('contract-mode') as HTMLSelectElement | null)?.value ?? 'FULL',
+            freeze_level_pips: read('contract-freeze') || '0',
+            gap_level_pips: read('contract-gap') || '0',
+            symbol_group: read('contract-group'),
+            news_start: read('contract-news-start'),
+            news_end: read('contract-news-end'),
+            news_title: read('contract-news-title'),
           });
         }}
       />

@@ -76,6 +76,12 @@ export function setForexAccountLimits(accountId: string, patch: ForexLimitSlice)
   accountLimits.set(accountId, { ...accountLimits.get(accountId), ...patch });
 }
 
+export function unsetForexAccountLimitKeys(accountId: string, keys: Array<keyof ForexLimitSlice>): void {
+  const current = accountLimits.get(accountId);
+  if (!current) return;
+  for (const key of keys) delete current[key];
+}
+
 export function setForexPositionLimits(positionId: string, patch: ForexLimitSlice): void {
   positionLimits.set(positionId, { ...positionLimits.get(positionId), ...patch });
 }

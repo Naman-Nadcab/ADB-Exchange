@@ -99,7 +99,7 @@ export function ForexExecutionPanel() {
       <ForexApprovalPendingNotice info={approvalNotice} onDismiss={() => setApprovalNotice(null)} />
       <ForexPanelShell
         title="Live money path gate"
-        description="Release opens only when the broker is healthy, arm intent is recorded, FOREX_REAL_FOREX_ALLOWED is on, and the kill switch is off."
+        description="Arm intent can be recorded. The effective path stays off and customer fills stay MOCK until a broker is actually healthy."
         className="border-amber-500/30 bg-amber-500/[0.03]"
       >
         <div className="mb-2 flex items-center gap-2 text-amber-500">
@@ -165,6 +165,7 @@ export function ForexExecutionPanel() {
 
       <ForexPanelShell
         title="MOCK LP routing & health"
+        description="These rows are simulated providers. Enabling one stores the choice. Customer fills stay MOCK."
         actions={
           <Button type="button" size="sm" variant="ghost" onClick={() => void execQ.refetch()} disabled={execQ.isFetching}>
             <RefreshCw className={`h-3.5 w-3.5 ${execQ.isFetching ? 'animate-spin' : ''}`} />
@@ -225,7 +226,7 @@ export function ForexExecutionPanel() {
         ) : null}
       </ForexPanelShell>
 
-      <ForexPanelShell title="Fill reconciliation (24h)">
+      <ForexPanelShell title="Internal execution counts (24h)" description="This is the simulated book. There is no LP statement to match.">
         {data?.fillRecon ? (
           <>
             <p className="mb-2 text-xs text-admin-muted">{data.fillRecon.note}</p>

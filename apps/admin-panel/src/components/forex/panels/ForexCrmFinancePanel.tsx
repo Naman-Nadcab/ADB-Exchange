@@ -186,7 +186,7 @@ export function ForexCrmFinancePanel() {
     <div className="admin-stack-lg">
       <ForexPanelShell
         title="Cashier request"
-        description="Credit, debit, adjustment, or fee. The ledger posts only after maker-checker approval. This does not broadcast a chain withdrawal."
+        description="Cash credit, debit, adjustment, or fee posts to customer cash after approval. Credit line is a separate balance. It raises equity and it is not a withdrawal."
       >
         <div className="grid gap-2 sm:grid-cols-4">
           <Input placeholder="Account id" value={cashAccount} onChange={(e) => setCashAccount(e.target.value)} className="h-9 font-mono text-xs" />
@@ -195,6 +195,8 @@ export function ForexCrmFinancePanel() {
             <option value="DEBIT">DEBIT</option>
             <option value="ADJUSTMENT">ADJUSTMENT</option>
             <option value="FEE">FEE</option>
+            <option value="CREDIT_LINE">CREDIT LINE</option>
+            <option value="CREDIT_LINE_RECALL">RECALL CREDIT</option>
           </select>
           <Input placeholder="Amount" value={cashAmount} onChange={(e) => setCashAmount(e.target.value)} className="h-9" />
           <Input placeholder="Reason (min 8)" value={cashReason} onChange={(e) => setCashReason(e.target.value)} className="h-9" />

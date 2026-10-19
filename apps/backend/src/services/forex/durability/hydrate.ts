@@ -68,6 +68,8 @@ export async function hydrateForexEconomicState(args: {
     try {
       const { hydrateForexAccountLeveragePoliciesFromDb } = await import('../account/account-leverage-policy.js');
       await hydrateForexAccountLeveragePoliciesFromDb();
+      const { hydrateForexAccountTradeRightsFromDb } = await import('../admin/account-trade-rights.js');
+      await hydrateForexAccountTradeRightsFromDb();
     } catch {
       /* optional columns / soft-fail */
     }

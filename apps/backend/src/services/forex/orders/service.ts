@@ -60,9 +60,30 @@ import {
 import { ForexOrderStore } from './store.js';
 import { isForexDemoMockSessionBypassActive } from '../sessions/demo-bypass.js';
 import { isForexTradingEligible } from '../sessions/eligibility.js';
+import { forexAccountEntryBlock } from '../admin/account-trade-rights.js';
+import { forexStopGapBlock, forexSymbolEntryBlock } from '../admin/desk-policy.js';
 import { getForexInstrumentBySymbol } from '../instruments.catalog.js';
 import { bocLimitWouldTake } from './fill-policy.js';
 import { validateForexOrderRequest } from './validate.js';
+
+function deskEntryRejection(
+  accountId: string,
+  req: Pick<ForexOrderRequest, 'symbol' | 'side' | 'orderType' | 'requestedPrice' | 'intent'>,
+  quote?: ForexQuoteDto | null,
+): { reason: ForexOrderReason; detail: string } | null {
+  const reduceOnly = req.intent === 'CUSTOMER_CLOSE' || req.intent === 'PROTECTION_CLOSE' || req.intent === 'LIQUIDATION_CLOSE';
+  const account = forexAccountEntryBlock(accountId, reduceOnly);
+  if (account) return account;
+  const usable = quote && quoteUsableForTrigger(quote) && fxDecimal(quote.ask).gt(quote.bid) ? { bid: quote.bid, ask: quote.ask } : null;
+  return forexSymbolEntryBlock({
+    symbol: req.symbol,
+    side: req.side,
+    orderType: req.orderType,
+    requestedPrice: req.requestedPrice,
+    reduceOnly,
+    quote: usable,
+  });
+}
 
 /**
  * Lifecycle events the customer journal reports on. Everything else stays in
@@ -344,6 +365,8 @@ export class ForexOrderService {
     }
     order.symbol = pre.symbol;
     order.request.symbol = pre.symbol;
+    const desk = deskEntryRejection(accountId, { ...req, symbol: pre.symbol }, this.pricing?.getQuote(pre.symbol));
+    if (desk) return await this.finish(order, 'REJECTED', desk.reason, started, desk.detail);
 
     const kind = await loadForexAccountKind(accountId);
     if (kind === 'LIVE') {
@@ -513,6 +536,11 @@ export class ForexOrderService {
       forexOrderModifyTotal.inc({ result: 'rejected' });
       throw new ForexOrderError(pre.reason, pre.detail, 400);
     }
+    const desk = deskEntryRejection(accountId, { ...nextReq, symbol: pre.symbol }, this.pricing?.getQuote(pre.symbol));
+    if (desk) {
+      forexOrderModifyTotal.inc({ result: 'rejected' });
+      throw new ForexOrderError(desk.reason, desk.detail, 400);
+    }
     if (this.positions) {
       const gate = this.riskGate(accountId, pre.symbol, nextReq.side, nextReq.volume, nextReq.intent ?? 'CUSTOMER', this.riskRequest(nextReq));
       if (!gate.ok) {
@@ -604,6 +632,17 @@ export class ForexOrderService {
     const demoBypass = isForexDemoMockSessionBypassActive();
     if (!session.open && (order.request.intent ?? 'CUSTOMER') === 'CUSTOMER' && !demoBypass) {
       await this.finish(order, 'FAILED', session.reason === 'HOLIDAY_UNCONFIGURED' ? 'HOLIDAY_UNCONFIGURED' : 'SESSION_CLOSED', started, session.reason);
+      return;
+    }
+    const desk = deskEntryRejection(order.accountId, order.request);
+    if (desk) {
+      await this.finish(order, 'FAILED', desk.reason, started, desk.detail);
+      return;
+    }
+    const execPrice = order.side === 'buy' ? quote.ask : quote.bid;
+    const gap = forexStopGapBlock(order.symbol, order.orderType, order.side, order.requestedPrice, execPrice);
+    if (gap) {
+      await this.finish(order, 'FAILED', 'PRICE_DEVIATION_LIMIT', started, gap);
       return;
     }
     if (order.orderType === 'stop_limit') {

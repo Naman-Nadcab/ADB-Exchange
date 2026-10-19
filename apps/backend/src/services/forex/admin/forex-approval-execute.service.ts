@@ -119,6 +119,25 @@ export async function executeForexApprovalIfFullyApproved(req: ApprovalRequest):
     return;
   }
 
+  if (req.action_type === 'forex_trade_rights') {
+    const accountId = String(pl.accountId ?? '').trim();
+    const tradeRights = String(pl.tradeRights ?? '').trim();
+    const reason = String(pl.reason ?? '').trim();
+    if (!accountId || !tradeRights || reason.length < 8) {
+      throw new Error('forex_trade_rights: accountId, tradeRights, reason required');
+    }
+    const { setForexAccountTradeRights } = await import('./account-trade-rights.js');
+    const result = await setForexAccountTradeRights({
+      accountId,
+      tradeRights,
+      adminId: String(pl.executingAdminId ?? req.requested_by),
+      reason,
+    });
+    await markExecuted(req.id, { action: 'forex_trade_rights', result, correlationId });
+    logger.info('maker-checker: forex trade rights stored', { requestId: req.id, accountId, correlationId });
+    return;
+  }
+
   if (req.action_type === 'forex_finance_request') {
     const requestId = String(pl.requestId ?? '').trim();
     if (!requestId) throw new Error('forex_finance_request: requestId required');
