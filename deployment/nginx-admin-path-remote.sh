@@ -149,8 +149,26 @@ if printf '%s' "$html" | grep -q '__next_error__'; then
 fi
 css=$(printf '%s' "$html" | sed -n 's/.*\(\/_next\/static\/css\/[A-Za-z0-9._-]*\.css\).*/\1/p' | head -n 1)
 js=$(printf '%s' "$html" | sed -n 's/.*\(\/_next\/static\/chunks\/[A-Za-z0-9._-]*\.js\).*/\1/p' | head -n 1)
+loginjs=$(printf '%s' "$html" | sed -n 's/.*\(\/_next\/static\/chunks\/app\/login\/page-[A-Za-z0-9._-]*\.js\).*/\1/p' | head -n 1)
 echo "ADMIN_CSS=${css:-missing}"
 echo "ADMIN_JS=${js:-missing}"
+echo "ADMIN_LOGIN_JS=${loginjs:-missing}"
+if [ -z "$loginjs" ]; then
+  echo "ADMIN_LOGIN_JS_MISSING" >&2
+  rollback
+  exit 1
+fi
+jsbody=$(curl -kfsS --compressed --max-time 20 "https://127.0.0.1/admin$loginjs" || true)
+if ! printf '%s' "$jsbody" | grep -F -q 'https://169.58.39.2'; then
+  echo "ADMIN_API_URL_NOT_HTTPS" >&2
+  rollback
+  exit 1
+fi
+if printf '%s' "$jsbody" | grep -F -q 'http://169.58.39.2'; then
+  echo "ADMIN_API_URL_STILL_HTTP" >&2
+  rollback
+  exit 1
+fi
 if [ -n "$css" ]; then
   css_type=$(curl -kfsS -o /dev/null -D - --max-time 20 "https://127.0.0.1/admin$css" | awk 'BEGIN{IGNORECASE=1} /^content-type:/ { print $2; exit }' || true)
   echo "ADMIN_CSS_VIA_PREFIX type=$css_type"
