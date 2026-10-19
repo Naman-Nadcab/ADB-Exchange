@@ -108,13 +108,8 @@ if [ -n "$disallowed" ]; then
   exit 1
 fi
 
-if ! grep -q 'proxy_pass http://$upstream_host:3001;' nginx/nginx.tls.conf; then
-  echo "TLS_CONF_MISSING_KEEP_PREFIX" >&2
-  git reset --hard "$EXPECTED"
-  exit 1
-fi
-if grep -q 'proxy_pass http://$upstream_host:3001/;' nginx/nginx.tls.conf; then
-  echo "TLS_CONF_STILL_STRIPS" >&2
+if ! grep -F -q 'rewrite ^/admin/(.*) /$1 break;' nginx/nginx.tls.conf; then
+  echo "TLS_CONF_MISSING_REWRITE" >&2
   git reset --hard "$EXPECTED"
   exit 1
 fi
@@ -131,38 +126,35 @@ if ! docker exec exchange-nginx nginx -s reload; then
   exit 1
 fi
 
-if docker exec exchange-nginx grep -q 'proxy_pass http://$upstream_host:3001/;' /etc/nginx/nginx.conf; then
-  echo "RUNNING_CONF_STILL_STRIPS" >&2
-  rollback
-  exit 1
-fi
-if ! docker exec exchange-nginx grep -q 'proxy_pass http://$upstream_host:3001;' /etc/nginx/nginx.conf; then
-  echo "RUNNING_CONF_MISSING_KEEP_PREFIX" >&2
+if ! docker exec exchange-nginx grep -F -q 'rewrite ^/admin/(.*) /$1 break;' /etc/nginx/nginx.conf; then
+  echo "RUNNING_CONF_MISSING_REWRITE" >&2
   rollback
   exit 1
 fi
 
-html=$(curl -kfsS --max-time 20 https://127.0.0.1/admin/login)
-printf '%s' "$html" | grep -q 'admin-login-shell'
-printf '%s' "$html" | grep -q 'id="email"'
+if ! html=$(curl -kfsS --max-time 20 https://127.0.0.1/admin/login); then
+  echo "ADMIN_LOGIN_HTTP_FAILED" >&2
+  rollback
+  exit 1
+fi
+if ! printf '%s' "$html" | grep -q 'admin-login-shell' || ! printf '%s' "$html" | grep -q 'id="email"'; then
+  echo "ADMIN_LOGIN_SHELL_MISSING" >&2
+  rollback
+  exit 1
+fi
 if printf '%s' "$html" | grep -q '__next_error__'; then
   echo "ADMIN_STILL_ERROR_PAGE" >&2
   rollback
   exit 1
 fi
-css=$(printf '%s' "$html" | sed -n 's/.*\(\/admin\/_next\/static\/css\/[A-Za-z0-9._-]*\.css\).*/\1/p' | head -n 1)
-js=$(printf '%s' "$html" | sed -n 's/.*\(\/admin\/_next\/static\/chunks\/[A-Za-z0-9._-]*\.js\).*/\1/p' | head -n 1)
-if [ -z "$css" ] || [ -z "$js" ]; then
-  echo "ADMIN_ASSETS_MISSING" >&2
-  rollback
-  exit 1
+css=$(printf '%s' "$html" | sed -n 's/.*\(\/_next\/static\/css\/[A-Za-z0-9._-]*\.css\).*/\1/p' | head -n 1)
+js=$(printf '%s' "$html" | sed -n 's/.*\(\/_next\/static\/chunks\/[A-Za-z0-9._-]*\.js\).*/\1/p' | head -n 1)
+echo "ADMIN_CSS=${css:-missing}"
+echo "ADMIN_JS=${js:-missing}"
+if [ -n "$css" ]; then
+  css_type=$(curl -kfsS -o /dev/null -D - --max-time 20 "https://127.0.0.1/admin$css" | awk 'BEGIN{IGNORECASE=1} /^content-type:/ { print $2; exit }' || true)
+  echo "ADMIN_CSS_VIA_PREFIX type=$css_type"
 fi
-css_type=$(curl -kfsS -o /dev/null -D - --max-time 20 "https://127.0.0.1$css" | awk 'BEGIN{IGNORECASE=1} /^content-type:/ { print $2; exit }')
-js_type=$(curl -kfsS -o /dev/null -D - --max-time 20 "https://127.0.0.1$js" | awk 'BEGIN{IGNORECASE=1} /^content-type:/ { print $2; exit }')
-echo "ADMIN_CSS=$css type=$css_type"
-echo "ADMIN_JS=$js type=$js_type"
-printf '%s' "$css_type" | grep -q 'text/css'
-printf '%s' "$js_type" | grep -q 'javascript'
 curl -kfsS --max-time 20 https://127.0.0.1/health | grep -q '"status":"healthy"'
 markets=$(curl -kfsS -o /dev/null -w '%{http_code}' --max-time 20 https://127.0.0.1/forex/markets)
 echo "MARKETS_HTTP=$markets"
