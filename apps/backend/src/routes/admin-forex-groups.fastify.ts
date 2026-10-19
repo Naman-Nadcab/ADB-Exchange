@@ -57,7 +57,10 @@ export default async function adminForexGroupsRoutes(app: FastifyInstance): Prom
         const group = await updateForexAccountGroup(request.params.groupId, {
           label: body.label != null ? String(body.label) : undefined,
           leverage_default: body.leverage_default != null ? String(body.leverage_default) : undefined,
+          position_mode_default:
+            body.position_mode_default === 'NETTING' || body.position_mode_default === 'HEDGING' ? body.position_mode_default : undefined,
           is_active: typeof body.is_active === 'boolean' ? body.is_active : undefined,
+          risk_profile: body.risk_profile && typeof body.risk_profile === 'object' ? (body.risk_profile as Record<string, unknown>) : undefined,
           spread_profile: body.spread_profile && typeof body.spread_profile === 'object' ? (body.spread_profile as Record<string, unknown>) : undefined,
           commission_profile: body.commission_profile && typeof body.commission_profile === 'object' ? (body.commission_profile as Record<string, unknown>) : undefined,
           swap_profile: body.swap_profile && typeof body.swap_profile === 'object' ? (body.swap_profile as Record<string, unknown>) : undefined,

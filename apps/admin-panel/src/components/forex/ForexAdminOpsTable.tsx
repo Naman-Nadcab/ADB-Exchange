@@ -11,6 +11,8 @@ import {
   getForexAdminPositions,
   forceCancelForexAdminOrder,
   adminCloseForexPosition,
+  adminModifyForexOrder,
+  adminPlaceForexOrder,
   adminSetForexProtection,
   downloadForexAdminCsv,
   type ForexAdminExecutionRow,
@@ -99,6 +101,15 @@ export function ForexAdminOpsTable({
   const [detailExec, setDetailExec] = useState<ForexAdminExecutionRow | null>(null);
   const [detailPos, setDetailPos] = useState<ForexAdminPositionRow | null>(null);
   const [managerAction, setManagerAction] = useState<'close' | 'sl' | 'tp' | null>(null);
+  const [orderAction, setOrderAction] = useState(false);
+  const [placeOpen, setPlaceOpen] = useState(false);
+  const [placeAccount, setPlaceAccount] = useState('');
+  const [placeSymbol, setPlaceSymbol] = useState('');
+  const [placeSide, setPlaceSide] = useState('buy');
+  const [placeType, setPlaceType] = useState('market');
+  const [placeVolume, setPlaceVolume] = useState('');
+  const [placePrice, setPlacePrice] = useState('');
+  const [placeLimit, setPlaceLimit] = useState('');
 
   useEffect(() => {
     const ac = searchParams.get('account_id')?.trim();
@@ -157,10 +168,12 @@ export function ForexAdminOpsTable({
         return res.data;
       }
       const price = (document.getElementById(managerAction === 'sl' ? 'mgr-sl' : 'mgr-tp') as HTMLInputElement | null)?.value.trim() ?? '';
+      const trail = (document.getElementById('mgr-trail') as HTMLInputElement | null)?.value.trim() ?? '';
       const res = await adminSetForexProtection(token, detailPos.position_id, {
         reason: args.reason,
         type: managerAction === 'sl' ? 'STOP_LOSS' : 'TAKE_PROFIT',
         trigger_price: price,
+        ...(managerAction === 'sl' && trail ? { trailing_distance: trail } : {}),
       });
       if (!res.success) throw new Error(res.error?.message ?? 'Protection failed');
       return res.data;
@@ -168,6 +181,52 @@ export function ForexAdminOpsTable({
     onSuccess: () => {
       setManagerAction(null);
       setDetailPos(null);
+      void qc.invalidateQueries({ queryKey: ['admin', 'forex'] });
+    },
+  });
+
+  const placeM = useMutation({
+    mutationFn: async (reason: string) => {
+      const res = await adminPlaceForexOrder(token, {
+        reason,
+        account_id: placeAccount.trim(),
+        symbol: placeSymbol.trim(),
+        side: placeSide,
+        order_type: placeType,
+        volume: placeVolume.trim(),
+        ...(placePrice.trim() ? { requested_price: placePrice.trim() } : {}),
+        ...(placeLimit.trim() ? { limit_price: placeLimit.trim() } : {}),
+      });
+      if (!res.success) throw new Error(res.error?.message ?? 'Place failed');
+      return res.data;
+    },
+    onSuccess: () => {
+      setPlaceOpen(false);
+      setPlaceVolume('');
+      setPlacePrice('');
+      setPlaceLimit('');
+      void qc.invalidateQueries({ queryKey: ['admin', 'forex'] });
+    },
+  });
+
+  const modifyM = useMutation({
+    mutationFn: async (reason: string) => {
+      if (!detailOrder) throw new Error('No order');
+      const volume = (document.getElementById('mod-volume') as HTMLInputElement | null)?.value.trim() ?? '';
+      const price = (document.getElementById('mod-price') as HTMLInputElement | null)?.value.trim() ?? '';
+      const limit = (document.getElementById('mod-limit') as HTMLInputElement | null)?.value.trim() ?? '';
+      const res = await adminModifyForexOrder(token, detailOrder.order_id, {
+        reason,
+        ...(volume ? { volume } : {}),
+        ...(price ? { requested_price: price } : {}),
+        ...(limit ? { limit_price: limit } : {}),
+      });
+      if (!res.success) throw new Error(res.error?.message ?? 'Modify failed');
+      return res.data;
+    },
+    onSuccess: () => {
+      setOrderAction(false);
+      setDetailOrder(null);
       void qc.invalidateQueries({ queryKey: ['admin', 'forex'] });
     },
   });
@@ -338,6 +397,34 @@ export function ForexAdminOpsTable({
         </ForexWorkspaceSurface>
       ) : null}
 
+      {kind === 'orders' ? (
+        <ForexWorkspaceSurface>
+          <ForexSectionLabel>Place for client</ForexSectionLabel>
+          <div className="mt-2 grid gap-2 sm:grid-cols-4">
+            <Input placeholder="Account id" value={placeAccount} onChange={(e) => setPlaceAccount(e.target.value)} className="h-9 font-mono text-xs" />
+            <Input placeholder="Symbol" value={placeSymbol} onChange={(e) => setPlaceSymbol(e.target.value.toUpperCase())} className="h-9" />
+            <select value={placeSide} onChange={(e) => setPlaceSide(e.target.value)} className="h-9 rounded border border-admin-border bg-admin-bg px-2 text-sm">
+              <option value="buy">buy</option>
+              <option value="sell">sell</option>
+            </select>
+            <select value={placeType} onChange={(e) => setPlaceType(e.target.value)} className="h-9 rounded border border-admin-border bg-admin-bg px-2 text-sm">
+              <option value="market">market</option>
+              <option value="limit">limit</option>
+              <option value="stop">stop</option>
+              <option value="stop_limit">stop_limit</option>
+            </select>
+            <Input placeholder="Volume" value={placeVolume} onChange={(e) => setPlaceVolume(e.target.value)} className="h-9" />
+            <Input placeholder="Price" value={placePrice} onChange={(e) => setPlacePrice(e.target.value)} className="h-9" />
+            <Input placeholder="Limit price" value={placeLimit} onChange={(e) => setPlaceLimit(e.target.value)} className="h-9" />
+          </div>
+          <ProtectedAction permission="forex:dealing:manage" fallback="disabled">
+            <Button type="button" size="sm" className="mt-3" disabled={!placeAccount.trim() || !placeSymbol.trim() || !placeVolume.trim()} onClick={() => setPlaceOpen(true)}>
+              Place order
+            </Button>
+          </ProtectedAction>
+        </ForexWorkspaceSurface>
+      ) : null}
+
       <ForexWorkspaceSurface noPadding>
         <div className="border-b border-admin-border px-4 py-3">
           <ForexSectionLabel icon={headerIcon}>Trading workspace · {title}</ForexSectionLabel>
@@ -444,6 +531,7 @@ export function ForexAdminOpsTable({
 
       <Modal open={!!detailOrder} onClose={() => setDetailOrder(null)} title="Order detail">
         {detailOrder ? (
+          <>
           <ForexDetailGrid
             columns={2}
             items={[
@@ -461,6 +549,17 @@ export function ForexAdminOpsTable({
               { label: 'Updated', value: fmtTime(detailOrder.updated_at) },
             ]}
           />
+          {(detailOrder.status === 'PENDING' || detailOrder.status === 'ACCEPTED') ? (
+            <ProtectedAction permission="forex:dealing:manage" fallback="hidden">
+              <div className="mt-4 grid gap-2 sm:grid-cols-3">
+                <label className="text-xs text-admin-muted">Volume<Input id="mod-volume" className="mt-1 h-8 font-mono" placeholder="Leave blank to keep" /></label>
+                <label className="text-xs text-admin-muted">Price<Input id="mod-price" className="mt-1 h-8 font-mono" placeholder="Trigger / limit" /></label>
+                <label className="text-xs text-admin-muted">Limit price<Input id="mod-limit" className="mt-1 h-8 font-mono" placeholder="Stop limit only" /></label>
+                <Button type="button" size="sm" variant="secondary" onClick={() => setOrderAction(true)}>Modify</Button>
+              </div>
+            </ProtectedAction>
+          ) : null}
+          </>
         ) : null}
       </Modal>
 
@@ -515,6 +614,10 @@ export function ForexAdminOpsTable({
                   <Input id="mgr-sl" className="mt-1 h-8 font-mono" placeholder="Price" />
                 </label>
                 <label className="text-xs text-admin-muted">
+                  Trail distance
+                  <Input id="mgr-trail" className="mt-1 h-8 font-mono" placeholder="With stop loss" />
+                </label>
+                <label className="text-xs text-admin-muted">
                   Take profit
                   <Input id="mgr-tp" className="mt-1 h-8 font-mono" placeholder="Price" />
                 </label>
@@ -536,6 +639,26 @@ export function ForexAdminOpsTable({
         loading={managerM.isPending}
         onConfirm={async (reason) => {
           await managerM.mutateAsync({ reason });
+        }}
+      />
+      <ForexConfirmModal
+        open={placeOpen}
+        onClose={() => setPlaceOpen(false)}
+        title="Place for client"
+        description={`${placeSide} ${placeType} ${placeVolume} ${placeSymbol}`}
+        loading={placeM.isPending}
+        onConfirm={async (reason) => {
+          await placeM.mutateAsync(reason);
+        }}
+      />
+      <ForexConfirmModal
+        open={orderAction && !!detailOrder}
+        onClose={() => setOrderAction(false)}
+        title="Modify working order"
+        description={detailOrder ? `${detailOrder.symbol} · ${detailOrder.order_id}` : undefined}
+        loading={modifyM.isPending}
+        onConfirm={async (reason) => {
+          await modifyM.mutateAsync(reason);
         }}
       />
     </>

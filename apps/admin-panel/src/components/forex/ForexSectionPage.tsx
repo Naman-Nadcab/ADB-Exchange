@@ -35,6 +35,7 @@ import { ForexNotificationsPanel } from '@/components/forex/panels/ForexNotifica
 import { ForexCompliancePanel } from '@/components/forex/panels/ForexCompliancePanel';
 import { ForexAutomationPanel } from '@/components/forex/panels/ForexAutomationPanel';
 import { ForexHolidayCalendarPanel } from '@/components/forex/panels/ForexHolidayCalendarPanel';
+import { ForexSymbolSessionsPanel } from '@/components/forex/panels/ForexSymbolSessionsPanel';
 import { ForexCrmHomePanel } from '@/components/forex/panels/ForexCrmHomePanel';
 import { ForexCrmMyClientsPanel } from '@/components/forex/panels/ForexCrmMyClientsPanel';
 import { ForexCrmSegmentsPanel } from '@/components/forex/panels/ForexCrmSegmentsPanel';
@@ -175,6 +176,7 @@ export function ForexSectionPage({ sectionId }: { sectionId: string }) {
         ) : (
           <>
             <ForexSessionsPanel sessions={configQ.data?.config.sessions} holiday={configQ.data?.readiness.holiday} />
+            <ForexSymbolSessionsPanel />
             <ForexHolidayCalendarPanel />
           </>
         );

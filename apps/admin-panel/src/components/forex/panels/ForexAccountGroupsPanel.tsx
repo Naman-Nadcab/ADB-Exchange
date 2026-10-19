@@ -29,6 +29,12 @@ export function ForexAccountGroupsPanel() {
   const [profileLong, setProfileLong] = useState('');
   const [profileShort, setProfileShort] = useState('');
   const [profileSpread, setProfileSpread] = useState('');
+  const [profileLeverage, setProfileLeverage] = useState('');
+  const [profileMode, setProfileMode] = useState('');
+  const [profileMaxOrder, setProfileMaxOrder] = useState('');
+  const [profileMaxPositions, setProfileMaxPositions] = useState('');
+  const [createLeverage, setCreateLeverage] = useState('');
+  const [createMode, setCreateMode] = useState('HEDGING');
 
   const qry = useQuery({
     queryKey: ['admin', 'forex', 'account-groups', token],
@@ -43,7 +49,12 @@ export function ForexAccountGroupsPanel() {
 
   const createMut = useMutation({
     mutationFn: async () => {
-      const res = await createForexAdminAccountGroup(token, { code: code.trim(), label: label.trim() });
+      const res = await createForexAdminAccountGroup(token, {
+        code: code.trim(),
+        label: label.trim(),
+        ...(createLeverage.trim() ? { leverage_default: createLeverage.trim() } : {}),
+        position_mode_default: createMode,
+      });
       if (!res.success) throw new Error(res.error?.message ?? 'Create failed');
     },
     onSuccess: () => {
@@ -69,6 +80,16 @@ export function ForexAccountGroupsPanel() {
         commission_profile: profileRate.trim() ? { model: 'per_lot', rate: profileRate.trim() } : undefined,
         swap_profile: profileLong.trim() || profileShort.trim() ? { longSwap: profileLong.trim() || undefined, shortSwap: profileShort.trim() || undefined } : undefined,
         spread_profile: profileSpread.trim() ? { maxSpread: profileSpread.trim() } : undefined,
+        ...(profileLeverage.trim() ? { leverage_default: profileLeverage.trim() } : {}),
+        ...(profileMode === 'NETTING' || profileMode === 'HEDGING' ? { position_mode_default: profileMode } : {}),
+        ...(profileMaxOrder.trim() || profileMaxPositions.trim()
+          ? {
+              risk_profile: {
+                ...(profileMaxOrder.trim() ? { maxOrderVolume: profileMaxOrder.trim() } : {}),
+                ...(profileMaxPositions.trim() ? { maxOpenPositions: Number(profileMaxPositions.trim()) } : {}),
+              },
+            }
+          : {}),
       });
       if (!res.success) throw new Error(res.error?.message ?? 'Profile update failed');
     },
@@ -125,7 +146,7 @@ export function ForexAccountGroupsPanel() {
   return (
     <ForexPanelShell
       title="Account groups"
-      description="Commission, swap, and max spread apply to accounts in the group."
+      description="Commission, swap, max spread, leverage, position mode, and risk limits apply to accounts in the group."
       actions={
         <Button variant="ghost" size="sm" onClick={() => void qry.refetch()} disabled={qry.isFetching}>
           <RefreshCw className={`mr-1 h-3.5 w-3.5 ${qry.isFetching ? 'animate-spin' : ''}`} />
@@ -137,6 +158,11 @@ export function ForexAccountGroupsPanel() {
         <div className="mb-4 flex flex-wrap items-end gap-2 rounded-md border border-admin-border/60 bg-admin-surface/40 p-3">
           <Input placeholder="Code (e.g. RETAIL_STD)" value={code} onChange={(e) => setCode(e.target.value)} className="max-w-[160px]" />
           <Input placeholder="Label" value={label} onChange={(e) => setLabel(e.target.value)} className="max-w-[220px]" />
+          <Input placeholder="Leverage" value={createLeverage} onChange={(e) => setCreateLeverage(e.target.value)} className="max-w-[100px]" />
+          <select value={createMode} onChange={(e) => setCreateMode(e.target.value)} className="h-9 rounded border border-admin-border bg-admin-bg px-2 text-xs">
+            <option value="HEDGING">HEDGING</option>
+            <option value="NETTING">NETTING</option>
+          </select>
           <Button size="sm" disabled={createMut.isPending || !code.trim() || !label.trim()} onClick={() => void createMut.mutate()}>
             Create group
           </Button>
@@ -153,7 +179,15 @@ export function ForexAccountGroupsPanel() {
           <Input placeholder="Swap long" value={profileLong} onChange={(e) => setProfileLong(e.target.value)} className="max-w-[120px]" />
           <Input placeholder="Swap short" value={profileShort} onChange={(e) => setProfileShort(e.target.value)} className="max-w-[120px]" />
           <Input placeholder="Max spread" value={profileSpread} onChange={(e) => setProfileSpread(e.target.value)} className="max-w-[120px]" />
-          <Button size="sm" disabled={profileMut.isPending || !profileGroup || (!profileRate.trim() && !profileLong.trim() && !profileShort.trim() && !profileSpread.trim())} onClick={() => void profileMut.mutate()}>
+          <Input placeholder="Leverage" value={profileLeverage} onChange={(e) => setProfileLeverage(e.target.value)} className="max-w-[100px]" />
+          <select value={profileMode} onChange={(e) => setProfileMode(e.target.value)} className="h-9 rounded border border-admin-border bg-admin-bg px-2 text-xs">
+            <option value="">Mode…</option>
+            <option value="HEDGING">HEDGING</option>
+            <option value="NETTING">NETTING</option>
+          </select>
+          <Input placeholder="Max order volume" value={profileMaxOrder} onChange={(e) => setProfileMaxOrder(e.target.value)} className="max-w-[150px]" />
+          <Input placeholder="Max open positions" value={profileMaxPositions} onChange={(e) => setProfileMaxPositions(e.target.value)} className="max-w-[160px]" />
+          <Button size="sm" disabled={profileMut.isPending || !profileGroup || (!profileRate.trim() && !profileLong.trim() && !profileShort.trim() && !profileSpread.trim() && !profileLeverage.trim() && !profileMode && !profileMaxOrder.trim() && !profileMaxPositions.trim())} onClick={() => void profileMut.mutate()}>
             Save profile
           </Button>
         </div>

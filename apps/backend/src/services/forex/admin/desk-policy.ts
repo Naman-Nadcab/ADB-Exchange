@@ -7,6 +7,8 @@
  */
 import { db } from '../../../lib/database.js';
 import { fxDecimal } from '../decimal-fx.js';
+import type { ForexCustomerOrderType, ForexTimeInForce } from '../orders/request.js';
+import { civilSeconds, zonedCivil } from '../sessions/timezone.js';
 import {
   forexLeverageRuntimeOverrides,
   forexMarginRuntimeOverrides,
@@ -40,6 +42,12 @@ export type ForexDeskOrderPolicy = {
   dayExpiry: boolean;
 };
 
+export type ForexDeskSessionWindow = {
+  days: number[];
+  open: string;
+  close: string;
+};
+
 export type ForexInstrumentDeskExtra = {
   volumeStep?: string;
   swapLong?: string;
@@ -47,6 +55,15 @@ export type ForexInstrumentDeskExtra = {
   commission?: string;
   spreadMarkupPips?: string;
   stopsLevelPips?: string;
+  digits?: number;
+  pipSize?: string;
+  tickSize?: string;
+  contractSize?: string;
+  marginPercent?: string;
+  commissionModel?: 'none' | 'per_lot' | 'per_side' | 'percentage';
+  swapModel?: 'points' | 'account_currency';
+  tradeSession?: ForexDeskSessionWindow;
+  quoteSession?: ForexDeskSessionWindow;
 };
 
 const DEFAULT_ORDER_POLICY: ForexDeskOrderPolicy = {
@@ -112,6 +129,31 @@ export function isForexTifDeskEnabled(tif: string): boolean {
   return true;
 }
 
+const TIF_FALLBACK: ForexTimeInForce[] = ['GTC', 'IOC', 'FOK', 'RETURN', 'DAY', 'GTD', 'BOC'];
+
+function tifFitsOrder(orderType: string, tif: ForexTimeInForce): boolean {
+  const pending = orderType !== 'market';
+  if (tif === 'GTC' || tif === 'RETURN') return true;
+  if (tif === 'IOC' || tif === 'FOK') return !pending;
+  return pending;
+}
+
+/** Omitted customer TIF. Keeps GTC while it is enabled so existing fingerprints stay stable. */
+export function resolveOmittedForexTif(orderType: string): ForexTimeInForce {
+  for (const tif of TIF_FALLBACK) {
+    if (isForexTifDeskEnabled(tif) && tifFitsOrder(orderType, tif)) return tif;
+  }
+  return 'GTC';
+}
+
+export function listDeskEnabledOrderTypes(all: readonly ForexCustomerOrderType[]): ForexCustomerOrderType[] {
+  return all.filter((t) => isForexOrderTypeDeskEnabled(t));
+}
+
+export function listDeskEnabledTifs(all: readonly ForexTimeInForce[]): ForexTimeInForce[] {
+  return all.filter((t) => isForexTifDeskEnabled(t));
+}
+
 export function getForexInstrumentDeskExtra(symbol: string): ForexInstrumentDeskExtra | undefined {
   const row = extras.get(normSymbol(symbol));
   return row ? { ...row } : undefined;
@@ -140,7 +182,13 @@ export function setForexDeskOrderPolicy(patch: Partial<ForexDeskOrderPolicy>): F
   return getForexDeskOrderPolicy();
 }
 
-export function setForexInstrumentDeskExtra(symbol: string, patch: ForexInstrumentDeskExtra): ForexInstrumentDeskExtra {
+export function setForexInstrumentDeskExtra(
+  symbol: string,
+  patch: Omit<ForexInstrumentDeskExtra, 'tradeSession' | 'quoteSession'> & {
+    tradeSession?: ForexDeskSessionWindow | null;
+    quoteSession?: ForexDeskSessionWindow | null;
+  },
+): ForexInstrumentDeskExtra {
   const sym = normSymbol(symbol);
   if (!sym) throw new Error('UNKNOWN_INSTRUMENT');
   const prev = extras.get(sym) ?? {};
@@ -151,10 +199,79 @@ export function setForexInstrumentDeskExtra(symbol: string, patch: ForexInstrume
   if (patch.commission != null) next.commission = positiveOrZero('COMMISSION', patch.commission, true);
   if (patch.spreadMarkupPips != null) next.spreadMarkupPips = positiveOrZero('SPREAD_MARKUP', patch.spreadMarkupPips, true);
   if (patch.stopsLevelPips != null) next.stopsLevelPips = positiveOrZero('STOPS_LEVEL', patch.stopsLevelPips, true);
+  if (patch.digits != null) {
+    const n = Number(patch.digits);
+    if (!Number.isInteger(n) || n < 0 || n > 8) throw new Error('INVALID_DIGITS');
+    next.digits = n;
+  }
+  if (patch.pipSize != null) next.pipSize = positiveOrZero('PIP_SIZE', patch.pipSize, false);
+  if (patch.tickSize != null) next.tickSize = positiveOrZero('TICK_SIZE', patch.tickSize, false);
+  if (patch.contractSize != null) next.contractSize = positiveOrZero('CONTRACT_SIZE', patch.contractSize, false);
+  if (patch.marginPercent != null) next.marginPercent = positiveOrZero('MARGIN_PERCENT', patch.marginPercent, true);
+  if (patch.commissionModel != null) {
+    if (patch.commissionModel !== 'none' && patch.commissionModel !== 'per_lot' && patch.commissionModel !== 'per_side' && patch.commissionModel !== 'percentage') {
+      throw new Error('INVALID_COMMISSION_MODEL');
+    }
+    next.commissionModel = patch.commissionModel;
+  }
+  if (patch.swapModel != null) {
+    if (patch.swapModel !== 'points' && patch.swapModel !== 'account_currency') throw new Error('INVALID_SWAP_MODEL');
+    next.swapModel = patch.swapModel;
+  }
+  if (patch.tradeSession === null) delete next.tradeSession;
+  else if (patch.tradeSession != null) next.tradeSession = parseSessionWindow(patch.tradeSession);
+  if (patch.quoteSession === null) delete next.quoteSession;
+  else if (patch.quoteSession != null) next.quoteSession = parseSessionWindow(patch.quoteSession);
   extras.set(sym, next);
   void applyExtraToEngines(sym, next);
   void persistForexDeskPolicy();
   return { ...next };
+}
+
+function parseHms(time: string): number {
+  const parts = time.trim().split(':');
+  if (parts.length < 2 || parts.length > 3) throw new Error('INVALID_SESSION');
+  const h = Number(parts[0]);
+  const m = Number(parts[1]);
+  const s = parts[2] == null ? 0 : Number(parts[2]);
+  if (![h, m, s].every((n) => Number.isInteger(n)) || h < 0 || h > 23 || m < 0 || m > 59 || s < 0 || s > 59) {
+    throw new Error('INVALID_SESSION');
+  }
+  return h * 3600 + m * 60 + s;
+}
+
+function parseSessionWindow(raw: ForexDeskSessionWindow): ForexDeskSessionWindow {
+  const days = [...new Set((raw.days ?? []).map((d) => Number(d)))].filter((d) => Number.isInteger(d) && d >= 0 && d <= 6);
+  if (!days.length) throw new Error('INVALID_SESSION');
+  const open = parseHms(String(raw.open ?? ''));
+  const close = parseHms(String(raw.close ?? ''));
+  const pad = (n: number) => String(n).padStart(2, '0');
+  const fmt = (sec: number) => `${pad(Math.floor(sec / 3600))}:${pad(Math.floor((sec % 3600) / 60))}:${pad(sec % 60)}`;
+  return { days: days.sort((a, b) => a - b), open: fmt(open), close: fmt(close) };
+}
+
+export function isForexDeskWindowOpen(window: ForexDeskSessionWindow | undefined, now = new Date()): boolean {
+  if (!window) return true;
+  try {
+    const civil = zonedCivil(now, 'UTC');
+    if (!window.days.includes(civil.weekday)) return false;
+    const sec = civilSeconds(civil);
+    const open = parseHms(window.open);
+    const close = parseHms(window.close);
+    if (open === close) return true;
+    if (close < open) return sec >= open || sec < close;
+    return sec >= open && sec < close;
+  } catch {
+    return true;
+  }
+}
+
+export function isForexTradeSessionOpen(symbol: string, now = new Date()): boolean {
+  return isForexDeskWindowOpen(getForexInstrumentDeskExtra(symbol)?.tradeSession, now);
+}
+
+export function isForexQuoteSessionOpen(symbol: string, now = new Date()): boolean {
+  return isForexDeskWindowOpen(getForexInstrumentDeskExtra(symbol)?.quoteSession, now);
 }
 
 /** Widen an existing bid/ask. A zero spread is left unchanged so a mock quote is not painted. */
@@ -170,16 +287,20 @@ export function widenQuoteForDeskMarkup(symbol: string, bidRaw: string, askRaw: 
 }
 
 async function applyExtraToEngines(symbol: string, extra: ForexInstrumentDeskExtra): Promise<void> {
-  if (extra.swapLong != null || extra.swapShort != null) {
+  if (extra.swapLong != null || extra.swapShort != null || extra.swapModel != null) {
     const { setForexInstrumentSwap } = await import('../swap/policy.js');
     setForexInstrumentSwap(symbol, {
       ...(extra.swapLong != null ? { longSwap: extra.swapLong } : {}),
       ...(extra.swapShort != null ? { shortSwap: extra.swapShort } : {}),
+      ...(extra.swapModel != null ? { model: extra.swapModel } : {}),
     });
   }
-  if (extra.commission != null) {
+  if (extra.commission != null || extra.commissionModel != null) {
     const { setForexInstrumentCommission } = await import('../fees/policy.js');
-    setForexInstrumentCommission(symbol, { rate: extra.commission, model: 'per_lot' });
+    setForexInstrumentCommission(symbol, {
+      ...(extra.commission != null ? { rate: extra.commission } : {}),
+      model: extra.commissionModel ?? 'per_lot',
+    });
   }
 }
 

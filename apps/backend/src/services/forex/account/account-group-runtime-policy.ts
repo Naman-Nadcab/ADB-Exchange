@@ -67,6 +67,20 @@ function parseSwapProfile(raw: unknown): Partial<{
   return Object.keys(patch).length ? patch : null;
 }
 
+function parseRiskProfile(raw: unknown): Partial<{ maxOrderVolume: string; maxOpenPositions: number }> | null {
+  const o = asRecord(raw);
+  const patch: Partial<{ maxOrderVolume: string; maxOpenPositions: number }> = {};
+  if (o.maxOrderVolume != null && String(o.maxOrderVolume).trim() !== '') {
+    const s = String(o.maxOrderVolume).trim();
+    if (fxDecimal(s).gt(0)) patch.maxOrderVolume = s;
+  }
+  if (o.maxOpenPositions != null && String(o.maxOpenPositions).trim() !== '') {
+    const n = Number.parseInt(String(o.maxOpenPositions), 10);
+    if (Number.isFinite(n) && n > 0) patch.maxOpenPositions = n;
+  }
+  return Object.keys(patch).length ? patch : null;
+}
+
 function parseSpreadProfile(raw: unknown): Partial<{ maxSpread: string }> | null {
   const o = asRecord(raw);
   const maxSpread = o.maxSpread ?? o.max_spread;
@@ -82,6 +96,7 @@ export function applyForexAccountGroupProfilesRuntime(
     commission_profile?: unknown;
     swap_profile?: unknown;
     spread_profile?: unknown;
+    risk_profile?: unknown;
   },
 ): void {
   const commission = parseCommissionProfile(profiles.commission_profile);
@@ -91,7 +106,13 @@ export function applyForexAccountGroupProfilesRuntime(
   if (swap) setForexAccountSwap(accountId, swap);
 
   const spread = parseSpreadProfile(profiles.spread_profile);
-  if (spread?.maxSpread) setForexAccountLimits(accountId, { maxSpread: spread.maxSpread });
+  const risk = parseRiskProfile(profiles.risk_profile);
+  const limits = {
+    ...(spread?.maxSpread ? { maxSpread: spread.maxSpread } : {}),
+    ...(risk?.maxOrderVolume ? { maxOrderVolume: risk.maxOrderVolume } : {}),
+    ...(risk?.maxOpenPositions != null ? { maxOpenPositions: risk.maxOpenPositions } : {}),
+  };
+  if (Object.keys(limits).length) setForexAccountLimits(accountId, limits);
 }
 
 export async function refreshForexAccountGroupRuntimePolicyForAccount(accountId: string): Promise<boolean> {
@@ -100,8 +121,9 @@ export async function refreshForexAccountGroupRuntimePolicyForAccount(accountId:
       commission_profile: unknown;
       swap_profile: unknown;
       spread_profile: unknown;
+      risk_profile: unknown;
     }>(
-      `SELECT g.commission_profile, g.swap_profile, g.spread_profile
+      `SELECT g.commission_profile, g.swap_profile, g.spread_profile, g.risk_profile
        FROM forex_accounts fa
        LEFT JOIN forex_account_groups g ON g.group_id = fa.group_id
        WHERE fa.account_id = $1`,
@@ -113,6 +135,7 @@ export async function refreshForexAccountGroupRuntimePolicyForAccount(accountId:
       commission_profile: row.commission_profile,
       swap_profile: row.swap_profile,
       spread_profile: row.spread_profile,
+      risk_profile: row.risk_profile,
     });
     return true;
   } catch {
@@ -127,8 +150,9 @@ export async function hydrateForexAccountGroupRuntimePoliciesFromDb(): Promise<n
       commission_profile: unknown;
       swap_profile: unknown;
       spread_profile: unknown;
+      risk_profile: unknown;
     }>(
-      `SELECT fa.account_id, g.commission_profile, g.swap_profile, g.spread_profile
+      `SELECT fa.account_id, g.commission_profile, g.swap_profile, g.spread_profile, g.risk_profile
        FROM forex_accounts fa
        INNER JOIN forex_account_groups g ON g.group_id = fa.group_id`,
     );
@@ -137,6 +161,7 @@ export async function hydrateForexAccountGroupRuntimePoliciesFromDb(): Promise<n
         commission_profile: row.commission_profile,
         swap_profile: row.swap_profile,
         spread_profile: row.spread_profile,
+        risk_profile: row.risk_profile,
       });
     }
     return res.rows.length;
