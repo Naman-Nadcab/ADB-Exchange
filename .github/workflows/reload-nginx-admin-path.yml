@@ -1,0 +1,179 @@
+name: Reload nginx admin path
+
+# Reloads the production nginx process so /admin is forwarded with its prefix.
+# A tag nginx-admin-reload/<release-sha>/<expected-production-sha> starts it.
+# It does not build images, run migrations, or recreate containers.
+on:
+  push:
+    tags:
+      - 'nginx-admin-reload/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: frontend-only-production
+  cancel-in-progress: false
+
+jobs:
+  reload:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    environment: production
+    steps:
+      - name: Read the nginx reload tag
+        id: tag
+        run: |
+          set -eu
+          ref=${GITHUB_REF#refs/tags/nginx-admin-reload/}
+          release=${ref%%/*}
+          expected=${ref#*/}
+          case "$expected" in
+            */*) echo "TAG_MALFORMED" >&2; exit 1 ;;
+          esac
+          printf '%s' "$release" | grep -Eq '^[0-9a-f]{40}$'
+          printf '%s' "$expected" | grep -Eq '^[0-9a-f]{40}$'
+          test "$release" != "$expected"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "expected=$expected" >> "$GITHUB_OUTPUT"
+
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ steps.tag.outputs.release }}
+          fetch-depth: 0
+
+      - name: Bundle the nginx commit
+        env:
+          NGINX_EXPECTED: ${{ steps.tag.outputs.expected }}
+          NGINX_RELEASE: ${{ steps.tag.outputs.release }}
+        run: |
+          set -eu
+          printf '%s' "$NGINX_EXPECTED" | grep -Eq '^[0-9a-f]{40}$'
+          printf '%s' "$NGINX_RELEASE" | grep -Eq '^[0-9a-f]{40}$'
+          test "$NGINX_EXPECTED" != "$NGINX_RELEASE"
+          git cat-file -e "${NGINX_EXPECTED}^{commit}"
+          git cat-file -e "${NGINX_RELEASE}^{commit}"
+          test "$(git rev-parse "${NGINX_RELEASE}^{commit}")" = "$NGINX_RELEASE"
+          git merge-base --is-ancestor "$NGINX_EXPECTED" "$NGINX_RELEASE"
+          test "$(git rev-parse "$NGINX_RELEASE")" != "$NGINX_EXPECTED"
+          git diff --name-only "$NGINX_EXPECTED" "$NGINX_RELEASE"
+          git update-ref refs/nginx-admin-path/release "$NGINX_RELEASE"
+          git bundle create nginx-admin-path.bundle refs/nginx-admin-path/release ^"$NGINX_EXPECTED"
+          git bundle verify nginx-admin-path.bundle >/dev/null
+          tip=$(git bundle list-heads nginx-admin-path.bundle | awk 'NR==1 { print $1 }')
+          test "$tip" = "$NGINX_RELEASE"
+
+      - name: Verify the ED25519 host key before connecting
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -eu
+          expected='SHA256:LPQv0Wf2i7YpOkuz+UBDw0U244tU/NumiDo4v7zuHGc'
+          case "$VPS_HOST" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_HOST_UNSAFE" >&2; exit 1 ;;
+          esac
+          dir="${RUNNER_TEMP}/adb-nginx-ssh"
+          rm -rf "$dir"
+          mkdir -p "$dir"
+          chmod 700 "$dir"
+          scan=$(mktemp)
+          ssh-keyscan -T 15 -t ed25519 -- "$VPS_HOST" 2>/dev/null | grep 'ssh-ed25519 ' >"$scan"
+          test "$(grep -c 'ssh-ed25519 ' "$scan")" -eq 1
+          fp=$(ssh-keygen -lf "$scan" | awk 'NR==1 { print $2 }')
+          echo "HOST_KEY_FINGERPRINT=$fp"
+          test "$fp" = "$expected"
+          cp "$scan" "$dir/known_hosts"
+          chmod 644 "$dir/known_hosts"
+          rm -f "$scan"
+
+      - name: Install the temporary deploy key
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -eu
+          dir="${RUNNER_TEMP}/adb-nginx-ssh"
+          umask 077
+          printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > "$dir/id"
+          chmod 600 "$dir/id"
+          ssh-keygen -lf "$dir/id" >/dev/null
+
+      - name: Copy the nginx bundle
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -eu
+          dir="${RUNNER_TEMP}/adb-nginx-ssh"
+          case "$VPS_HOST" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_HOST_UNSAFE" >&2; exit 1 ;;
+          esac
+          case "$VPS_USER" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_USER_UNSAFE" >&2; exit 1 ;;
+          esac
+          scp \
+            -i "$dir/id" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$dir/known_hosts" \
+            -o GlobalKnownHostsFile=/dev/null \
+            -o HostKeyAlgorithms=ssh-ed25519 \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            nginx-admin-path.bundle \
+            "$VPS_USER@$VPS_HOST:/tmp/nginx-admin-path.bundle"
+
+      - name: Reload nginx with the admin prefix kept
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          NGINX_APP: ${{ secrets.VPS_DEPLOY_PATH }}
+          NGINX_EXPECTED: ${{ steps.tag.outputs.expected }}
+          NGINX_RELEASE: ${{ steps.tag.outputs.release }}
+        run: |
+          set -eu
+          dir="${RUNNER_TEMP}/adb-nginx-ssh"
+          case "$VPS_HOST" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_HOST_UNSAFE" >&2; exit 1 ;;
+          esac
+          case "$VPS_USER" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_USER_UNSAFE" >&2; exit 1 ;;
+          esac
+          app="${NGINX_APP:-/opt/adb-exchange}"
+          case "$app" in
+            ''|*[!A-Za-z0-9/_.-]*) echo "APP_PATH_UNSAFE" >&2; exit 1 ;;
+          esac
+          ssh \
+            -i "$dir/id" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$dir/known_hosts" \
+            -o GlobalKnownHostsFile=/dev/null \
+            -o HostKeyAlgorithms=ssh-ed25519 \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            "$VPS_USER@$VPS_HOST" \
+            "NGINX_APP=$(printf '%q' "$app") NGINX_EXPECTED=$(printf '%q' "$NGINX_EXPECTED") NGINX_RELEASE=$(printf '%q' "$NGINX_RELEASE") sh -s" \
+            < deployment/nginx-admin-path-remote.sh
+
+      - name: Check the public admin page
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -eu
+          html=$(curl -kfsS --max-time 20 "https://$VPS_HOST/admin/login")
+          printf '%s' "$html" | grep -q 'admin-login-shell'
+          printf '%s' "$html" | grep -q 'id="email"'
+          if printf '%s' "$html" | grep -q '__next_error__'; then
+            echo "PUBLIC_ADMIN_STILL_ERROR" >&2
+            exit 1
+          fi
+          css=$(printf '%s' "$html" | sed -n 's/.*\(\/_next\/static\/css\/[A-Za-z0-9._-]*\.css\).*/\1/p' | head -n 1)
+          echo "PUBLIC_ADMIN_CSS=${css:-missing}"
+          curl -kfsS --max-time 20 "https://$VPS_HOST/health" | grep -q '"status":"healthy"'
+          markets=$(curl -kfsS -o /dev/null -w '%{http_code}' --max-time 20 "https://$VPS_HOST/forex/markets")
+          echo "PUBLIC_MARKETS_HTTP=$markets"
+          test "$markets" = "200"
+
+      - name: Remove temporary SSH key material
+        if: always()
+        run: rm -rf "${RUNNER_TEMP}/adb-nginx-ssh"
