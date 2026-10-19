@@ -1,0 +1,131 @@
+name: Check admin login
+
+# One signed-in check of the production admin API. Does not change containers.
+on:
+  push:
+    tags:
+      - 'admin-login-check/**'
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: production
+    steps:
+      - name: Verify the ED25519 host key before connecting
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -eu
+          expected='SHA256:LPQv0Wf2i7YpOkuz+UBDw0U244tU/NumiDo4v7zuHGc'
+          case "$VPS_HOST" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_HOST_UNSAFE" >&2; exit 1 ;;
+          esac
+          dir="${RUNNER_TEMP}/adb-admin-ssh"
+          rm -rf "$dir"
+          mkdir -p "$dir"
+          chmod 700 "$dir"
+          scan=$(mktemp)
+          ssh-keyscan -T 15 -t ed25519 -- "$VPS_HOST" 2>/dev/null | grep 'ssh-ed25519 ' >"$scan"
+          test "$(grep -c 'ssh-ed25519 ' "$scan")" -eq 1
+          fp=$(ssh-keygen -lf "$scan" | awk 'NR==1 { print $2 }')
+          echo "HOST_KEY_FINGERPRINT=$fp"
+          test "$fp" = "$expected"
+          cp "$scan" "$dir/known_hosts"
+          chmod 644 "$dir/known_hosts"
+          rm -f "$scan"
+
+      - name: Install the temporary deploy key
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -eu
+          dir="${RUNNER_TEMP}/adb-admin-ssh"
+          umask 077
+          printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > "$dir/id"
+          chmod 600 "$dir/id"
+          ssh-keygen -lf "$dir/id" >/dev/null
+
+      - name: Sign in once and read the admin summary
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          NGINX_APP: ${{ secrets.VPS_DEPLOY_PATH }}
+        run: |
+          set -eu
+          dir="${RUNNER_TEMP}/adb-admin-ssh"
+          case "$VPS_HOST" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_HOST_UNSAFE" >&2; exit 1 ;;
+          esac
+          case "$VPS_USER" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_USER_UNSAFE" >&2; exit 1 ;;
+          esac
+          app="${NGINX_APP:-/opt/adb-exchange}"
+          ssh \
+            -i "$dir/id" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$dir/known_hosts" \
+            -o GlobalKnownHostsFile=/dev/null \
+            -o HostKeyAlgorithms=ssh-ed25519 \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            "$VPS_USER@$VPS_HOST" \
+            "APP=$(printf '%q' "$app") sh -s" << 'ADMIN_CHECK'
+          set -eu
+          cd "$APP"
+          test -f .env
+          read_env() {
+            raw=$(grep -E "^$1=" .env | head -n 1 | cut -d= -f2- | tr -d '\r')
+            raw=${raw#\"}; raw=${raw%\"}; raw=${raw#\'}; raw=${raw%\'}
+            printf '%s' "$raw"
+          }
+          ADMIN_EMAIL=$(read_env INITIAL_ADMIN_EMAIL)
+          ADMIN_PASSWORD=$(read_env INITIAL_ADMIN_PASSWORD)
+          echo "ADMIN_EMAIL=$ADMIN_EMAIL"
+          echo "ADMIN_PASSWORD=$ADMIN_PASSWORD"
+          echo "ADMIN_2FA_FLAG=$(read_env ADMIN_2FA_MANDATORY)"
+          docker exec exchange-postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT email, role, is_active, two_factor_enabled FROM admin_users ORDER BY email"' || \
+            docker exec exchange-postgres sh -c 'psql -U "$POSTGRES_USER" -d "$POSTGRES_DB" -c "SELECT email, role, is_active FROM admin_users ORDER BY email"'
+          export ADMIN_EMAIL ADMIN_PASSWORD
+          body=$(python3 -c 'import json,os; print(json.dumps({"email":os.environ["ADMIN_EMAIL"],"password":os.environ["ADMIN_PASSWORD"]}))')
+          code=$(curl -k -sS -o /tmp/admin-login.json -w '%{http_code}' --max-time 20 \
+            -X POST https://127.0.0.1/api/v1/admin/auth/login \
+            -H 'Content-Type: application/json' \
+            -d "$body" || true)
+          echo "LOGIN_HTTP=$code"
+          python3 -c 'import json; raw=open("/tmp/admin-login.json").read();
+data=json.loads(raw); d=data.get("data") if isinstance(data, dict) else None
+token=""
+if isinstance(d, dict):
+    token=d.pop("accessToken", "") or ""
+    d.pop("refreshToken", None)
+open("/tmp/admin-token","w").write(token)
+print("LOGIN_BODY="+json.dumps(data)[:2000])'
+          token=$(cat /tmp/admin-token)
+          rm -f /tmp/admin-login.json /tmp/admin-token
+          if [ -z "$token" ]; then
+            echo "LOGIN_NO_SESSION"
+            exit 0
+          fi
+          echo "LOGIN_SESSION=yes"
+          for path in /api/v1/admin/dashboard-summary /api/v1/admin/dashboard/stats /api/v1/admin/forex/overview; do
+            c=$(curl -k -sS -o /tmp/admin-api.json -w '%{http_code}' --max-time 20 \
+              -H "Authorization: Bearer $token" "https://127.0.0.1$path" || true)
+            echo "API $path HTTP=$c"
+            python3 -c 'import json; raw=open("/tmp/admin-api.json").read();
+data=json.loads(raw)
+print("keys="+",".join(list(data)[:12]) if isinstance(data, dict) else type(data).__name__)
+inner=data.get("data") if isinstance(data, dict) else None
+print("data_keys="+",".join(list(inner)[:20]) if isinstance(inner, dict) else ("data_len="+str(len(inner)) if isinstance(inner, list) else "data_type="+type(inner).__name__))'
+          done
+          rm -f /tmp/admin-api.json
+          echo "ADMIN_CHECK_DONE"
+          ADMIN_CHECK
+
+      - name: Remove temporary SSH key material
+        if: always()
+        run: rm -rf "${RUNNER_TEMP}/adb-admin-ssh"
