@@ -238,7 +238,7 @@ export function ForexInstrumentsPanel() {
       <ForexListWorkspace
         icon={CandlestickChart}
         title="Instrument catalog"
-        description="Halt or resume from the desk · policy edits on Margin & Risk"
+        description="Halt or resume from the desk · leverage and volume on Margin & Risk"
         filters={
           <div className="relative w-full min-w-[12rem] sm:w-56">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-3.5 w-3.5 -translate-y-1/2 text-admin-muted" />
