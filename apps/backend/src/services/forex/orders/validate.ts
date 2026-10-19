@@ -1,4 +1,4 @@
-import { isForexOrderTypeDeskEnabled, isForexTifDeskEnabled } from '../admin/desk-policy.js';
+import { isForexOrderTypeDeskEnabled, isForexQuoteSessionOpen, isForexTifDeskEnabled, isForexTradeSessionOpen } from '../admin/desk-policy.js';
 import { fxDecimal, fxDecimalPlaces, fxPositive } from '../decimal-fx.js';
 import { getForexInstrumentBySymbol, normalizeForexSymbol } from '../instruments.catalog.js';
 import { isForexDemoMockSessionBypassActive } from '../sessions/demo-bypass.js';
@@ -122,6 +122,9 @@ export function validateForexOrderRequest(req: ForexOrderRequest): OrderValidati
   }
   if (instrument.tradingStatus !== 'active') {
     return { ok: false, reason: 'INSTRUMENT_HALTED', detail: `${symbol} is ${instrument.tradingStatus}` };
+  }
+  if (!reduceOnly && (!isForexTradeSessionOpen(symbol) || !isForexQuoteSessionOpen(symbol))) {
+    return { ok: false, reason: 'SESSION_CLOSED', detail: `${symbol} is outside its desk session` };
   }
 
   let volume;

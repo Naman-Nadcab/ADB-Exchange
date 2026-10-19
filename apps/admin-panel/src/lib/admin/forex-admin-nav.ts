@@ -148,7 +148,7 @@ export const FOREX_ADMIN_ROUTES: ForexAdminRoute[] = [
     label: 'Sessions & Holidays',
     href: '/forex/sessions',
     icon: CalendarClock,
-    description: 'Market hours, DST, holiday calendar, session eligibility.',
+    description: 'Market hours, one symbol’s trade window, and the holiday calendar.',
     phase: 'F1',
   },
   {

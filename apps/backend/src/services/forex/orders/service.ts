@@ -306,6 +306,10 @@ export class ForexOrderService {
 
   private async placeLocked(accountId: string, req: ForexOrderRequest): Promise<ForexOrderRecord> {
     const started = Date.now();
+    if (req.timeInForce == null || String(req.timeInForce).trim() === '') {
+      const { resolveOmittedForexTif } = await import('../admin/desk-policy.js');
+      req = { ...req, timeInForce: resolveOmittedForexTif(req.orderType) };
+    }
     const existing = await this.claim(accountId, req);
     if (existing === 'conflict') {
       forexOrderIdempotencyHitTotal.inc({ result: 'conflict' });

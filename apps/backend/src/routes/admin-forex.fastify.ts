@@ -512,7 +512,7 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
 
   app.patch<{
     Params: { symbol: string };
-    Body: { reason?: string; max_leverage?: string; min_volume?: string; max_volume?: string; volume_step?: string; swap_long?: string; swap_short?: string; commission?: string; spread_markup_pips?: string; stops_level_pips?: string };
+    Body: { reason?: string; max_leverage?: string; min_volume?: string; max_volume?: string; volume_step?: string; swap_long?: string; swap_short?: string; commission?: string; spread_markup_pips?: string; stops_level_pips?: string; digits?: string | number; pip_size?: string; tick_size?: string; contract_size?: string; margin_percent?: string; commission_model?: string; swap_model?: string; trade_session?: { days?: number[]; open?: string; close?: string } | null; quote_session?: { days?: number[]; open?: string; close?: string } | null };
   }>('/forex/policy/instruments/:symbol', async (request, reply) => {
     const admin = await getAdminWithPermission(app, request, reply, 'forex:controls:manage');
     if (!admin) return;
@@ -536,6 +536,15 @@ export default async function adminForexRoutes(app: FastifyInstance): Promise<vo
         commission: request.body?.commission,
         spread_markup_pips: request.body?.spread_markup_pips,
         stops_level_pips: request.body?.stops_level_pips,
+        digits: request.body?.digits,
+        pip_size: request.body?.pip_size,
+        tick_size: request.body?.tick_size,
+        contract_size: request.body?.contract_size,
+        margin_percent: request.body?.margin_percent,
+        commission_model: request.body?.commission_model,
+        swap_model: request.body?.swap_model,
+        trade_session: request.body && 'trade_session' in request.body ? (request.body.trade_session as { days: number[]; open: string; close: string } | null) : undefined,
+        quote_session: request.body && 'quote_session' in request.body ? (request.body.quote_session as { days: number[]; open: string; close: string } | null) : undefined,
       });
       await logAuditFromRequest(request, {
         actorType: 'admin',

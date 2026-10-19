@@ -1,0 +1,241 @@
+name: Deploy forex desk images
+
+# Backup point first, then rebuild only the backend and admin images.
+# Customer frontend, nginx, postgres, and the other services stay on their
+# current containers. A failed health check restores the tagged images.
+# Push a tag at the commit that contains this file:
+#   forex-desk-deploy-run/<release-sha>/<expected-production-sha>
+# Admin image only, leaving the API container running:
+#   forex-desk-admin-run/<release-sha>/<expected-production-sha>
+# Restore the backup point with:
+#   forex-desk-rollback-run/<release-sha>/<expected-production-sha>
+on:
+  push:
+    tags:
+      - 'forex-desk-deploy-run/**'
+      - 'forex-desk-admin-run/**'
+      - 'forex-desk-rollback-run/**'
+
+permissions:
+  contents: read
+
+concurrency:
+  group: forex-desk-production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    if: startsWith(github.ref, 'refs/tags/forex-desk-deploy-run/') || startsWith(github.ref, 'refs/tags/forex-desk-admin-run/') || startsWith(github.ref, 'refs/tags/forex-desk-rollback-run/')
+    runs-on: ubuntu-latest
+    timeout-minutes: 90
+    environment: production
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ref: ${{ github.sha }}
+          fetch-depth: 0
+
+      - name: Resolve the desk operation
+        id: decision
+        env:
+          EVENT_REF: ${{ github.ref }}
+          EVENT_SHA: ${{ github.sha }}
+        run: |
+          set -eu
+          mode=deploy
+          release=
+          expected=
+          case "$EVENT_REF" in
+            refs/tags/forex-desk-deploy-run/*/*)
+              mode=deploy
+              rest=${EVENT_REF#refs/tags/forex-desk-deploy-run/}
+              release=${rest%%/*}
+              expected=${rest#*/}
+              ;;
+            refs/tags/forex-desk-admin-run/*/*)
+              mode=admin
+              rest=${EVENT_REF#refs/tags/forex-desk-admin-run/}
+              release=${rest%%/*}
+              expected=${rest#*/}
+              ;;
+            refs/tags/forex-desk-rollback-run/*/*)
+              mode=rollback
+              rest=${EVENT_REF#refs/tags/forex-desk-rollback-run/}
+              release=${rest%%/*}
+              expected=${rest#*/}
+              ;;
+            *)
+              echo "BAD_TAG" >&2
+              exit 1
+              ;;
+          esac
+          printf '%s' "$release" | grep -Eq '^[0-9a-f]{40}$'
+          printf '%s' "$expected" | grep -Eq '^[0-9a-f]{40}$'
+          test "$release" = "$EVENT_SHA"
+          if [ "$mode" != "rollback" ]; then
+            test "$expected" != "$release"
+            git cat-file -e "${expected}^{commit}"
+            git merge-base --is-ancestor "$expected" "$release"
+            files=$(git diff --name-only "$expected" "$release")
+            test -n "$files"
+            if [ "$mode" = "admin" ]; then
+              disallowed=$(printf '%s\n' "$files" | grep -v -e '^apps/admin-panel/' -e '^\.github/workflows/deploy-forex-desk.yml$' -e '^deployment/forex-desk-remote.sh$' || true)
+            else
+              disallowed=$(printf '%s\n' "$files" | grep -v -e '^apps/backend/' -e '^apps/admin-panel/' -e '^\.github/workflows/deploy-forex-desk.yml$' -e '^deployment/forex-desk-remote.sh$' || true)
+            fi
+            if [ -n "$disallowed" ]; then
+              echo "DISALLOWED_PATHS" >&2
+              printf '%s\n' "$disallowed" | head -40 >&2
+              exit 1
+            fi
+            git update-ref refs/forex-desk/release "$release"
+            git bundle create forex-desk.bundle refs/forex-desk/release ^"$expected"
+            git bundle verify forex-desk.bundle >/dev/null
+            tip=$(git bundle list-heads forex-desk.bundle | awk 'NR==1 { print $1 }')
+            test "$tip" = "$release"
+          fi
+          echo "mode=$mode" >> "$GITHUB_OUTPUT"
+          echo "release=$release" >> "$GITHUB_OUTPUT"
+          echo "expected=$expected" >> "$GITHUB_OUTPUT"
+
+      - name: Verify the ED25519 host key before connecting
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+        run: |
+          set -eu
+          expected='SHA256:LPQv0Wf2i7YpOkuz+UBDw0U244tU/NumiDo4v7zuHGc'
+          case "$VPS_HOST" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_HOST_UNSAFE" >&2; exit 1 ;;
+          esac
+          dir="${RUNNER_TEMP}/adb-forex-desk-ssh"
+          rm -rf "$dir"
+          mkdir -p "$dir"
+          chmod 700 "$dir"
+          scan=$(mktemp)
+          ssh-keyscan -T 15 -t ed25519 -- "$VPS_HOST" 2>/dev/null | grep 'ssh-ed25519 ' >"$scan"
+          test "$(grep -c 'ssh-ed25519 ' "$scan")" -eq 1
+          fp=$(ssh-keygen -lf "$scan" | awk 'NR==1 { print $2 }')
+          echo "HOST_KEY_FINGERPRINT=$fp"
+          test "$fp" = "$expected"
+          cp "$scan" "$dir/known_hosts"
+          chmod 644 "$dir/known_hosts"
+          rm -f "$scan"
+
+      - name: Install the temporary deploy key
+        env:
+          VPS_SSH_KEY: ${{ secrets.VPS_SSH_KEY }}
+        run: |
+          set -eu
+          dir="${RUNNER_TEMP}/adb-forex-desk-ssh"
+          umask 077
+          printf '%s\n' "$VPS_SSH_KEY" | tr -d '\r' > "$dir/id"
+          chmod 600 "$dir/id"
+          ssh-keygen -lf "$dir/id" >/dev/null
+
+      - name: Copy the desk bundle
+        if: (steps.decision.outputs.mode == 'deploy' || steps.decision.outputs.mode == 'admin')
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+        run: |
+          set -eu
+          dir="${RUNNER_TEMP}/adb-forex-desk-ssh"
+          case "$VPS_HOST" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_HOST_UNSAFE" >&2; exit 1 ;;
+          esac
+          case "$VPS_USER" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_USER_UNSAFE" >&2; exit 1 ;;
+          esac
+          test -f forex-desk.bundle
+          scp \
+            -i "$dir/id" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$dir/known_hosts" \
+            -o GlobalKnownHostsFile=/dev/null \
+            -o HostKeyAlgorithms=ssh-ed25519 \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            forex-desk.bundle \
+            "$VPS_USER@$VPS_HOST:/tmp/forex-desk.bundle"
+
+      - name: Backup and rebuild only the desk images
+        id: remote
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          DESK_APP: ${{ secrets.VPS_DEPLOY_PATH }}
+          DESK_MODE: ${{ steps.decision.outputs.mode }}
+          DESK_EXPECTED: ${{ steps.decision.outputs.expected }}
+          DESK_RELEASE: ${{ steps.decision.outputs.release }}
+        run: |
+          set -eu
+          dir="${RUNNER_TEMP}/adb-forex-desk-ssh"
+          case "$VPS_HOST" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_HOST_UNSAFE" >&2; exit 1 ;;
+          esac
+          case "$VPS_USER" in
+            ''|*[!A-Za-z0-9._-]*) echo "VPS_USER_UNSAFE" >&2; exit 1 ;;
+          esac
+          app="${DESK_APP:-/opt/adb-exchange}"
+          case "$app" in
+            ''|*[!A-Za-z0-9/_.-]*) echo "APP_PATH_UNSAFE" >&2; exit 1 ;;
+          esac
+          ssh \
+            -i "$dir/id" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$dir/known_hosts" \
+            -o GlobalKnownHostsFile=/dev/null \
+            -o HostKeyAlgorithms=ssh-ed25519 \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=40 \
+            "$VPS_USER@$VPS_HOST" \
+            "DESK_MODE=$(printf '%q' "$DESK_MODE") DESK_APP=$(printf '%q' "$app") DESK_EXPECTED=$(printf '%q' "$DESK_EXPECTED") DESK_RELEASE=$(printf '%q' "$DESK_RELEASE") sh -s" \
+            < deployment/forex-desk-remote.sh
+
+      - name: Public smoke checks
+        if: (steps.decision.outputs.mode == 'deploy' || steps.decision.outputs.mode == 'admin')
+        run: |
+          set -eu
+          curl -kfsS --max-time 25 https://169.58.39.2/health | grep -q '"status":"healthy"'
+          curl -kfsSI --max-time 25 https://169.58.39.2/login >/dev/null
+          html=$(curl -kfsS --max-time 25 https://169.58.39.2/admin/login)
+          printf '%s' "$html" | grep -q 'admin-login-shell'
+          printf '%s' "$html" | grep -q 'id="email"'
+          if printf '%s' "$html" | grep -q '__next_error__'; then
+            echo "ADMIN_ERROR_PAGE" >&2
+            exit 1
+          fi
+          echo "public_smoke=ok"
+
+      - name: Restore the backup point when the public check fails
+        if: failure() && steps.remote.outcome == 'success' && (steps.decision.outputs.mode == 'deploy' || steps.decision.outputs.mode == 'admin')
+        env:
+          VPS_HOST: ${{ secrets.VPS_HOST }}
+          VPS_USER: ${{ secrets.VPS_USER }}
+          DESK_APP: ${{ secrets.VPS_DEPLOY_PATH }}
+        run: |
+          set -eu
+          dir="${RUNNER_TEMP}/adb-forex-desk-ssh"
+          app="${DESK_APP:-/opt/adb-exchange}"
+          ssh \
+            -i "$dir/id" \
+            -o IdentitiesOnly=yes \
+            -o StrictHostKeyChecking=yes \
+            -o UserKnownHostsFile="$dir/known_hosts" \
+            -o GlobalKnownHostsFile=/dev/null \
+            -o HostKeyAlgorithms=ssh-ed25519 \
+            -o BatchMode=yes \
+            -o ConnectTimeout=20 \
+            -o ServerAliveInterval=30 \
+            -o ServerAliveCountMax=40 \
+            "$VPS_USER@$VPS_HOST" \
+            "DESK_MODE=rollback DESK_APP=$(printf '%q' "$app") sh -s" \
+            < deployment/forex-desk-remote.sh
+
+      - name: Remove temporary SSH key material
+        if: always()
+        run: rm -rf "${RUNNER_TEMP}/adb-forex-desk-ssh"

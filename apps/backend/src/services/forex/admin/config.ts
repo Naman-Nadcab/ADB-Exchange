@@ -15,7 +15,7 @@ import { effectiveForexRuntimeFlags } from './runtime-controls.js';
 import { forexConfig } from '../config.js';
 import { listForexCommissionPolicies } from '../fees/policy.js';
 import { FOREX_INSTRUMENT_CATALOG, getForexInstrumentBySymbol } from '../instruments.catalog.js';
-import { getForexInstrumentDeskExtra } from './desk-policy.js';
+import { getForexInstrumentDeskExtra, listDeskEnabledOrderTypes, listDeskEnabledTifs } from './desk-policy.js';
 import { snapshotForexRiskPolicy } from '../risk/policy.js';
 import { getForexDealingSnapshot } from '../risk/dealing.js';
 import { forexSessionSnapshot } from '../sessions/eligibility.js';
@@ -50,13 +50,21 @@ export function getForexAdminBackendConfig() {
         minVolume: resolved?.minVolume ?? i.minVolume,
         maxVolume: resolved?.maxVolume ?? i.maxVolume,
         volumeStep: resolved?.volumeStep ?? i.volumeStep,
-        marginPercent: i.marginPercent,
+        digits: resolved?.digits ?? i.digits,
+        pipSize: resolved?.pipSize ?? i.pipSize,
+        tickSize: resolved?.tickSize ?? i.tickSize,
+        contractSize: resolved?.contractSize ?? i.contractSize,
+        marginPercent: resolved?.marginPercent ?? i.marginPercent,
         commission: getForexInstrumentDeskExtra(i.symbol)?.commission ?? i.commission,
-        commissionType: i.commissionType,
+        commissionType: resolved?.commissionType ?? i.commissionType,
+        commissionModel: getForexInstrumentDeskExtra(i.symbol)?.commissionModel ?? (i.commissionType === 'percentage' ? 'percentage' : i.commissionType === 'none' ? 'none' : 'per_lot'),
         swapLong: getForexInstrumentDeskExtra(i.symbol)?.swapLong ?? i.swapLong,
         swapShort: getForexInstrumentDeskExtra(i.symbol)?.swapShort ?? i.swapShort,
+        swapModel: getForexInstrumentDeskExtra(i.symbol)?.swapModel ?? 'account_currency',
         spreadMarkupPips: getForexInstrumentDeskExtra(i.symbol)?.spreadMarkupPips ?? '0',
         stopsLevelPips: getForexInstrumentDeskExtra(i.symbol)?.stopsLevelPips ?? '0',
+        tradeSession: getForexInstrumentDeskExtra(i.symbol)?.tradeSession ?? null,
+        quoteSession: getForexInstrumentDeskExtra(i.symbol)?.quoteSession ?? null,
       };
     }),
     sessions,
@@ -96,12 +104,12 @@ export function getForexCustomerTradingConfig() {
     source: 'SIMULATED' as const,
     executionMode: 'MOCK' as const,
     /** Canonical KIND values (combine with allowedSides for 8 customer paths). */
-    orderTypes: [...FOREX_CUSTOMER_EXPOSED_ORDER_TYPES],
+    orderTypes: listDeskEnabledOrderTypes(FOREX_CUSTOMER_EXPOSED_ORDER_TYPES),
     orderKinds: [...FOREX_ORDER_KINDS],
     allowedSides: [...FOREX_ORDER_SIDES],
     orderModel: 'side_x_kind' as const,
     customerOrderPaths: listForexCustomerOrderPaths(),
-    timeInForce: [...FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE],
+    timeInForce: listDeskEnabledTifs(FOREX_CUSTOMER_EXPOSED_TIME_IN_FORCE),
     capabilities,
     executionCapabilities: resolveForexExecutionCapabilities(),
     marketData: {

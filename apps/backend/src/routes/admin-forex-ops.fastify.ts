@@ -20,7 +20,7 @@ import {
 import { searchForexAdmin } from '../services/forex/admin/admin-search.js';
 import { createForexFinanceRequest, listForexFinanceRequests } from '../services/forex/admin/finance-requests.js';
 import { getForexBookMode, getForexDeskOrderPolicy, setForexBookMode, setForexDeskOrderPolicy } from '../services/forex/admin/desk-policy.js';
-import { adminCloseForexPosition, adminSetForexProtection, forexAccountStatement } from '../services/forex/admin/manager-desk.js';
+import { adminCloseForexPosition, adminModifyForexOrder, adminPlaceForexOrder, adminSetForexProtection, forexAccountStatement } from '../services/forex/admin/manager-desk.js';
 import {
   createForexAutomationWorkflow,
   listForexAutomationRuns,
@@ -405,7 +405,93 @@ export default async function adminForexOpsRoutes(app: FastifyInstance): Promise
     },
   );
 
-  app.post<{ Params: { positionId: string }; Body: { reason?: string; type?: string; trigger_price?: string } }>(
+  app.post<{
+    Body: {
+      reason?: string;
+      account_id?: string;
+      symbol?: string;
+      side?: string;
+      order_type?: string;
+      volume?: string;
+      requested_price?: string;
+      limit_price?: string;
+    };
+  }>('/forex/orders/place', async (request, reply) => {
+    const admin = await getAdminWithPermission(app, request, reply, 'forex:dealing:manage');
+    if (!admin) return;
+    const reason = String(request.body?.reason ?? '').trim();
+    const side = String(request.body?.side ?? '');
+    const orderType = String(request.body?.order_type ?? '');
+    if (reason.length < 8) {
+      return reply.status(400).send({ success: false, error: { code: 'REASON_REQUIRED', message: 'Reason min 8 chars' } });
+    }
+    if (side !== 'buy' && side !== 'sell') {
+      return reply.status(400).send({ success: false, error: { code: 'INVALID_SIDE', message: 'side must be buy or sell' } });
+    }
+    if (orderType !== 'market' && orderType !== 'limit' && orderType !== 'stop' && orderType !== 'stop_limit') {
+      return reply.status(400).send({ success: false, error: { code: 'UNSUPPORTED_ORDER_TYPE', message: 'order_type is not supported' } });
+    }
+    try {
+      const result = await adminPlaceForexOrder({
+        accountId: String(request.body?.account_id ?? ''),
+        symbol: String(request.body?.symbol ?? ''),
+        side,
+        orderType,
+        volume: String(request.body?.volume ?? ''),
+        requestedPrice: request.body?.requested_price,
+        limitPrice: request.body?.limit_price,
+      });
+      await logAuditFromRequest(request, {
+        actorType: 'admin',
+        actorId: admin.adminId,
+        action: 'forex_manager_place',
+        resourceType: 'forex_order',
+        resourceId: result.orderId,
+        oldValue: null,
+        newValue: { ...result, reason },
+      });
+      return reply.send({ success: true, data: result });
+    } catch (e) {
+      const code = deskErrorCode(e);
+      const status = code === 'ACCOUNT_NOT_FOUND' ? 404 : 400;
+      return reply.status(status).send({ success: false, error: { code, message: 'Manager place failed' } });
+    }
+  });
+
+  app.post<{ Params: { orderId: string }; Body: { reason?: string; requested_price?: string; limit_price?: string; volume?: string } }>(
+    '/forex/orders/:orderId/modify',
+    async (request, reply) => {
+      const admin = await getAdminWithPermission(app, request, reply, 'forex:dealing:manage');
+      if (!admin) return;
+      const reason = String(request.body?.reason ?? '').trim();
+      if (reason.length < 8) {
+        return reply.status(400).send({ success: false, error: { code: 'REASON_REQUIRED', message: 'Reason min 8 chars' } });
+      }
+      try {
+        const result = await adminModifyForexOrder(request.params.orderId, {
+          ...(request.body?.requested_price != null ? { requestedPrice: String(request.body.requested_price) } : {}),
+          ...(request.body?.limit_price != null ? { limitPrice: String(request.body.limit_price) } : {}),
+          ...(request.body?.volume != null ? { volume: String(request.body.volume) } : {}),
+        });
+        await logAuditFromRequest(request, {
+          actorType: 'admin',
+          actorId: admin.adminId,
+          action: 'forex_manager_modify',
+          resourceType: 'forex_order',
+          resourceId: request.params.orderId,
+          oldValue: null,
+          newValue: { ...result, reason },
+        });
+        return reply.send({ success: true, data: result });
+      } catch (e) {
+        const code = deskErrorCode(e);
+        const status = code === 'ORDER_NOT_FOUND' ? 404 : 400;
+        return reply.status(status).send({ success: false, error: { code, message: 'Manager modify failed' } });
+      }
+    },
+  );
+
+  app.post<{ Params: { positionId: string }; Body: { reason?: string; type?: string; trigger_price?: string; trailing_distance?: string } }>(
     '/forex/positions/:positionId/protection',
     async (request, reply) => {
       const admin = await getAdminWithPermission(app, request, reply, 'forex:dealing:manage');
@@ -423,6 +509,7 @@ export default async function adminForexOpsRoutes(app: FastifyInstance): Promise
           positionId: request.params.positionId,
           type,
           triggerPrice: String(request.body?.trigger_price ?? ''),
+          trailingDistance: request.body?.trailing_distance,
         });
         await logAuditFromRequest(request, {
           actorType: 'admin',

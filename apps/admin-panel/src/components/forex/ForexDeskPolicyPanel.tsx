@@ -59,7 +59,7 @@ export function ForexDeskPolicyPanel() {
   return (
     <ForexPanelShell
       title="LP-ready desk policy"
-      description="Order types, time in force, and book mode are saved. Customer fills stay simulated until the broker is healthy."
+      description="Turns order types on or off for the customer ticket. Book mode is stored for a later LP. Fills stay simulated."
       actions={<Badge variant="info" className="font-normal">Fills {draft.fills}</Badge>}
     >
       <div className="grid gap-4 lg:grid-cols-3">

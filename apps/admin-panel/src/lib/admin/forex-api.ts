@@ -490,7 +490,27 @@ export function patchForexAdminPolicy(
 export function patchForexInstrumentPolicy(
   token: string | null,
   symbol: string,
-  body: { reason: string; max_leverage?: string; min_volume?: string; max_volume?: string; volume_step?: string; swap_long?: string; swap_short?: string; commission?: string; spread_markup_pips?: string; stops_level_pips?: string },
+  body: {
+    reason: string;
+    max_leverage?: string;
+    min_volume?: string;
+    max_volume?: string;
+    volume_step?: string;
+    swap_long?: string;
+    swap_short?: string;
+    commission?: string;
+    spread_markup_pips?: string;
+    stops_level_pips?: string;
+    digits?: string;
+    pip_size?: string;
+    tick_size?: string;
+    contract_size?: string;
+    margin_percent?: string;
+    commission_model?: string;
+    swap_model?: string;
+    trade_session?: { days: number[]; open: string; close: string } | null;
+    quote_session?: { days: number[]; open: string; close: string } | null;
+  },
 ) {
   return adminFetch<{ snapshot: ForexAdminPolicySnapshot }>(`/forex/policy/instruments/${encodeURIComponent(symbol)}`, {
     method: 'PATCH',
@@ -545,9 +565,24 @@ export function adminCloseForexPosition(token: string | null, positionId: string
 export function adminSetForexProtection(
   token: string | null,
   positionId: string,
-  body: { reason: string; type: 'STOP_LOSS' | 'TAKE_PROFIT'; trigger_price: string },
+  body: { reason: string; type: 'STOP_LOSS' | 'TAKE_PROFIT'; trigger_price: string; trailing_distance?: string },
 ) {
   return adminFetch(`/forex/positions/${encodeURIComponent(positionId)}/protection`, { token, method: 'POST', body });
+}
+
+export function adminPlaceForexOrder(
+  token: string | null,
+  body: { reason: string; account_id: string; symbol: string; side: string; order_type: string; volume: string; requested_price?: string; limit_price?: string },
+) {
+  return adminFetch('/forex/orders/place', { token, method: 'POST', body });
+}
+
+export function adminModifyForexOrder(
+  token: string | null,
+  orderId: string,
+  body: { reason: string; requested_price?: string; limit_price?: string; volume?: string },
+) {
+  return adminFetch(`/forex/orders/${encodeURIComponent(orderId)}/modify`, { token, method: 'POST', body });
 }
 
 export function getForexAccountStatement(token: string | null, accountId: string) {
@@ -1256,7 +1291,16 @@ export function completeForexAdminCrmTask(token: string | null, taskId: string) 
 export function updateForexAdminAccountGroup(
   token: string | null,
   groupId: string,
-  body: { label?: string; leverage_default?: string; is_active?: boolean; spread_profile?: { maxSpread?: string }; commission_profile?: { model?: string; rate?: string }; swap_profile?: { longSwap?: string; shortSwap?: string } },
+  body: {
+    label?: string;
+    leverage_default?: string;
+    position_mode_default?: 'NETTING' | 'HEDGING';
+    is_active?: boolean;
+    spread_profile?: { maxSpread?: string };
+    commission_profile?: { model?: string; rate?: string };
+    swap_profile?: { longSwap?: string; shortSwap?: string };
+    risk_profile?: { maxOrderVolume?: string; maxOpenPositions?: number };
+  },
 ) {
   return adminFetch<{ group: ForexAdminAccountGroupRow }>(`/forex/account-groups/${encodeURIComponent(groupId)}`, {
     token,

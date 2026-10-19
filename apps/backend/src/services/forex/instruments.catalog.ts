@@ -127,6 +127,14 @@ export function getForexInstrumentBySymbol(symbol: string): ForexInstrument | un
   }
   const extra = getForexInstrumentDeskExtra(symbol);
   if (extra?.volumeStep) out = { ...out, volumeStep: extra.volumeStep };
+  if (extra?.digits != null) out = { ...out, digits: extra.digits, pricePrecision: extra.digits };
+  if (extra?.pipSize) out = { ...out, pipSize: extra.pipSize };
+  if (extra?.tickSize) out = { ...out, tickSize: extra.tickSize };
+  if (extra?.contractSize) out = { ...out, contractSize: extra.contractSize };
+  if (extra?.marginPercent) out = { ...out, marginPercent: extra.marginPercent };
+  if (extra?.commissionModel === 'none' || extra?.commissionModel === 'percentage' || extra?.commissionModel === 'per_lot') {
+    out = { ...out, commissionType: extra.commissionModel };
+  }
   return out;
 }
 

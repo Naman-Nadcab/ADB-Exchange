@@ -36,6 +36,12 @@ export type ForexInstrumentRow = {
   volumeStep?: string;
   spreadMarkupPips?: string;
   stopsLevelPips?: string;
+  digits?: number;
+  pipSize?: string;
+  tickSize?: string;
+  contractSize?: string;
+  commissionModel?: string;
+  swapModel?: string;
   overridden?: boolean;
 };
 
@@ -126,7 +132,7 @@ export function ForexInstrumentsPanel() {
   });
 
   const contractM = useMutation({
-    mutationFn: async (args: { symbol: string; reason: string; volume_step: string; swap_long: string; swap_short: string; commission: string; spread_markup_pips: string; stops_level_pips: string }) => {
+    mutationFn: async (args: { symbol: string; reason: string; volume_step: string; swap_long: string; swap_short: string; commission: string; spread_markup_pips: string; stops_level_pips: string; digits: string; pip_size: string; tick_size: string; contract_size: string; margin_percent: string; commission_model: string; swap_model: string }) => {
       const res = await patchForexInstrumentPolicy(token, args.symbol, args);
       if (!res.success) throw new Error(res.error?.message ?? 'Contract update failed');
       return res.data;
@@ -273,7 +279,7 @@ export function ForexInstrumentsPanel() {
         open={!!detail}
         onClose={() => setDetail(null)}
         title={detail?.symbol ?? 'Instrument'}
-        description="Contract specification snapshot"
+        description="This symbol only. Markup widens a real bid/ask. A zero spread stays zero."
         size="lg"
       >
         {detail ? (
@@ -299,6 +305,27 @@ export function ForexInstrumentsPanel() {
             <label className="text-xs text-admin-muted">Commission<Input id="contract-commission" className="mt-1 h-8 font-mono" defaultValue={detail.commission} /></label>
             <label className="text-xs text-admin-muted">Markup pips<Input id="contract-markup" className="mt-1 h-8 font-mono" defaultValue={detail.spreadMarkupPips ?? '0'} /></label>
             <label className="text-xs text-admin-muted">Stops level pips<Input id="contract-stops" className="mt-1 h-8 font-mono" defaultValue={detail.stopsLevelPips ?? '0'} /></label>
+            <label className="text-xs text-admin-muted">Digits<Input id="contract-digits" className="mt-1 h-8 font-mono" defaultValue={String(detail.digits ?? 5)} /></label>
+            <label className="text-xs text-admin-muted">Pip size<Input id="contract-pip" className="mt-1 h-8 font-mono" defaultValue={detail.pipSize ?? '0.0001'} /></label>
+            <label className="text-xs text-admin-muted">Tick size<Input id="contract-tick" className="mt-1 h-8 font-mono" defaultValue={detail.tickSize ?? '0.00001'} /></label>
+            <label className="text-xs text-admin-muted">Contract size<Input id="contract-size" className="mt-1 h-8 font-mono" defaultValue={detail.contractSize ?? '100000'} /></label>
+            <label className="text-xs text-admin-muted">Margin percent<Input id="contract-margin" className="mt-1 h-8 font-mono" defaultValue={detail.marginPercent ?? '0'} /></label>
+            <label className="text-xs text-admin-muted">
+              Commission model
+              <select id="contract-comm-model" className="mt-1 h-8 w-full rounded border border-admin-border bg-admin-bg px-2 text-sm" defaultValue={detail.commissionModel ?? detail.commissionType ?? 'per_lot'}>
+                <option value="per_lot">per_lot</option>
+                <option value="per_side">per_side</option>
+                <option value="percentage">percentage</option>
+                <option value="none">none</option>
+              </select>
+            </label>
+            <label className="text-xs text-admin-muted">
+              Swap model
+              <select id="contract-swap-model" className="mt-1 h-8 w-full rounded border border-admin-border bg-admin-bg px-2 text-sm" defaultValue={detail.swapModel ?? 'account_currency'}>
+                <option value="account_currency">account_currency</option>
+                <option value="points">points</option>
+              </select>
+            </label>
           </div>
         ) : null}
         {contractError ? <p className="mt-2 text-sm text-red-400">{contractError}</p> : null}
@@ -318,8 +345,17 @@ export function ForexInstrumentsPanel() {
                 const commission = read('contract-commission');
                 const spread_markup_pips = read('contract-markup');
                 const stops_level_pips = read('contract-stops');
-                if (![volume_step, commission, spread_markup_pips, stops_level_pips].every((v) => /^\d+(\.\d+)?$/.test(v))) {
-                  setContractError('Step, commission, markup, and stops must be numbers.');
+                const digits = read('contract-digits');
+                const pip_size = read('contract-pip');
+                const tick_size = read('contract-tick');
+                const contract_size = read('contract-size');
+                const margin_percent = read('contract-margin');
+                if (![volume_step, commission, spread_markup_pips, stops_level_pips, pip_size, tick_size, contract_size, margin_percent].every((v) => /^\d+(\.\d+)?$/.test(v))) {
+                  setContractError('Step, commission, markup, stops, pip, tick, contract, and margin must be numbers.');
+                  return;
+                }
+                if (!/^\d+$/.test(digits) || Number(digits) > 8) {
+                  setContractError('Digits must be a whole number from 0 to 8.');
                   return;
                 }
                 if (![swap_long, swap_short].every((v) => /^-?\d+(\.\d+)?$/.test(v))) {
@@ -375,6 +411,13 @@ export function ForexInstrumentsPanel() {
             commission: read('contract-commission'),
             spread_markup_pips: read('contract-markup'),
             stops_level_pips: read('contract-stops'),
+            digits: read('contract-digits'),
+            pip_size: read('contract-pip'),
+            tick_size: read('contract-tick'),
+            contract_size: read('contract-size'),
+            margin_percent: read('contract-margin'),
+            commission_model: (document.getElementById('contract-comm-model') as HTMLSelectElement | null)?.value ?? 'per_lot',
+            swap_model: (document.getElementById('contract-swap-model') as HTMLSelectElement | null)?.value ?? 'account_currency',
           });
         }}
       />

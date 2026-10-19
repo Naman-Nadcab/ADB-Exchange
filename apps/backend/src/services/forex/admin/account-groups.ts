@@ -62,6 +62,7 @@ export async function createForexAccountGroup(args: {
   const levDec = fxDecimal(lev);
   if (!levDec.isFinite() || !levDec.gt(0)) throw new Error('INVALID_LEVERAGE');
   const mode = args.position_mode_default ?? 'HEDGING';
+  if (mode !== 'NETTING' && mode !== 'HEDGING') throw new Error('INVALID_POSITION_MODE');
   const res = await db.query(`INSERT INTO forex_account_groups (code, label, leverage_default, position_mode_default)
      VALUES ($1, $2, $3, $4) RETURNING *`, [code, args.label.trim(), lev, mode]);
   return mapGroupRow(res.rows[0] as Record<string, unknown>, 0);
@@ -72,6 +73,7 @@ export async function updateForexAccountGroup(
   patch: {
     label?: string;
     leverage_default?: string;
+    position_mode_default?: 'NETTING' | 'HEDGING';
     is_active?: boolean;
     spread_profile?: Record<string, unknown>;
     commission_profile?: Record<string, unknown>;
@@ -90,6 +92,11 @@ export async function updateForexAccountGroup(
     if (!levDec.isFinite() || !levDec.gt(0)) throw new Error('INVALID_LEVERAGE');
     params.push(patch.leverage_default.trim());
     fields.push(`leverage_default = $${params.length}`);
+  }
+  if (patch.position_mode_default != null) {
+    if (patch.position_mode_default !== 'NETTING' && patch.position_mode_default !== 'HEDGING') throw new Error('INVALID_POSITION_MODE');
+    params.push(patch.position_mode_default);
+    fields.push(`position_mode_default = $${params.length}`);
   }
   if (typeof patch.is_active === 'boolean') {
     params.push(patch.is_active);

@@ -1,7 +1,7 @@
 /**
  * Admin F4 — economic policy snapshot & runtime edits (fees, swaps, leverage, margin, instrument caps).
  */
-import { persistForexDeskPolicy, getForexInstrumentDeskExtra, setForexInstrumentDeskExtra } from './desk-policy.js';
+import { persistForexDeskPolicy, getForexInstrumentDeskExtra, setForexInstrumentDeskExtra, type ForexDeskSessionWindow } from './desk-policy.js';
 import { setForexGlobalCommission, listForexCommissionPolicies, type ForexCommissionModel } from '../fees/policy.js';
 import { setForexGlobalSwap, listForexSwapPolicies } from '../swap/policy.js';
 import { fxDecimal } from '../decimal-fx.js';
@@ -163,6 +163,15 @@ export function applyForexInstrumentPolicyPatch(
     commission?: string;
     spread_markup_pips?: string;
     stops_level_pips?: string;
+    digits?: string | number;
+    pip_size?: string;
+    tick_size?: string;
+    contract_size?: string;
+    margin_percent?: string;
+    commission_model?: string;
+    swap_model?: string;
+    trade_session?: ForexDeskSessionWindow | null;
+    quote_session?: ForexDeskSessionWindow | null;
   },
 ): { symbol: string; previous: Record<string, string | undefined>; next: Record<string, string | undefined> } {
   const base = getForexInstrumentBySymbol(symbol);
@@ -185,6 +194,15 @@ export function applyForexInstrumentPolicyPatch(
     ...(body.commission != null ? { commission: String(body.commission) } : {}),
     ...(body.spread_markup_pips != null ? { spreadMarkupPips: String(body.spread_markup_pips) } : {}),
     ...(body.stops_level_pips != null ? { stopsLevelPips: String(body.stops_level_pips) } : {}),
+    ...(body.digits != null ? { digits: Number(body.digits) } : {}),
+    ...(body.pip_size != null ? { pipSize: String(body.pip_size) } : {}),
+    ...(body.tick_size != null ? { tickSize: String(body.tick_size) } : {}),
+    ...(body.contract_size != null ? { contractSize: String(body.contract_size) } : {}),
+    ...(body.margin_percent != null ? { marginPercent: String(body.margin_percent) } : {}),
+    ...(body.commission_model != null ? { commissionModel: body.commission_model as 'none' | 'per_lot' | 'per_side' | 'percentage' } : {}),
+    ...(body.swap_model != null ? { swapModel: body.swap_model as 'points' | 'account_currency' } : {}),
+    ...(body.trade_session !== undefined ? { tradeSession: body.trade_session } : {}),
+    ...(body.quote_session !== undefined ? { quoteSession: body.quote_session } : {}),
   };
   if (!Object.keys(patch).length && !Object.keys(extraPatch).length) throw new Error('NO_INSTRUMENT_POLICY_FIELDS');
   const effMin = patch.minVolume ?? base.minVolume;
@@ -208,6 +226,15 @@ export function applyForexInstrumentPolicyPatch(
       commission: previousExtra?.commission,
       spreadMarkupPips: previousExtra?.spreadMarkupPips,
       stopsLevelPips: previousExtra?.stopsLevelPips,
+      digits: previousExtra?.digits != null ? String(previousExtra.digits) : undefined,
+      pipSize: previousExtra?.pipSize,
+      tickSize: previousExtra?.tickSize,
+      contractSize: previousExtra?.contractSize,
+      marginPercent: previousExtra?.marginPercent,
+      commissionModel: previousExtra?.commissionModel,
+      swapModel: previousExtra?.swapModel,
+      tradeSession: previousExtra?.tradeSession ? JSON.stringify(previousExtra.tradeSession) : undefined,
+      quoteSession: previousExtra?.quoteSession ? JSON.stringify(previousExtra.quoteSession) : undefined,
     },
     next: {
       maxLeverage: patch.maxLeverage ?? base.maxLeverage,
@@ -219,6 +246,15 @@ export function applyForexInstrumentPolicyPatch(
       commission: nextExtra?.commission,
       spreadMarkupPips: nextExtra?.spreadMarkupPips,
       stopsLevelPips: nextExtra?.stopsLevelPips,
+      digits: nextExtra?.digits != null ? String(nextExtra.digits) : undefined,
+      pipSize: nextExtra?.pipSize,
+      tickSize: nextExtra?.tickSize,
+      contractSize: nextExtra?.contractSize,
+      marginPercent: nextExtra?.marginPercent,
+      commissionModel: nextExtra?.commissionModel,
+      swapModel: nextExtra?.swapModel,
+      tradeSession: nextExtra?.tradeSession ? JSON.stringify(nextExtra.tradeSession) : undefined,
+      quoteSession: nextExtra?.quoteSession ? JSON.stringify(nextExtra.quoteSession) : undefined,
     },
   };
 }

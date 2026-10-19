@@ -1,4 +1,4 @@
-import { widenQuoteForDeskMarkup } from '../admin/desk-policy.js';
+import { isForexQuoteSessionOpen, widenQuoteForDeskMarkup } from '../admin/desk-policy.js';
 import { fxDecimal, fxToPriceString } from '../decimal-fx.js';
 import type { ForexInstrument, NormalizedQuote, ProviderRawQuote } from '../types.js';
 import { calculateMid, calculateSpread } from './spread.js';
@@ -51,7 +51,7 @@ export function normalizeProviderQuote(args: NormalizeArgs): NormalizedQuote {
     providerSequence: raw.providerSequence,
     edaReceiveSequence,
     quality,
-    status: halted ? 'HALTED' : quality === 'STALE' ? 'UNAVAILABLE' : 'TRADEABLE',
+    status: halted ? 'HALTED' : quality === 'STALE' || !isForexQuoteSessionOpen(instrument.symbol, now) ? 'UNAVAILABLE' : 'TRADEABLE',
     source: raw.source,
     freshness: stale.freshness,
   };
