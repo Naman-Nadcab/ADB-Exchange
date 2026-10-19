@@ -400,6 +400,7 @@ export function ForexAdminOpsTable({
       {kind === 'orders' ? (
         <ForexWorkspaceSurface>
           <ForexSectionLabel>Place for client</ForexSectionLabel>
+          <p className="mt-1 text-xs text-admin-muted">Places on that account. The customer ticket still has no time-in-force picker.</p>
           <div className="mt-2 grid gap-2 sm:grid-cols-4">
             <Input placeholder="Account id" value={placeAccount} onChange={(e) => setPlaceAccount(e.target.value)} className="h-9 font-mono text-xs" />
             <Input placeholder="Symbol" value={placeSymbol} onChange={(e) => setPlaceSymbol(e.target.value.toUpperCase())} className="h-9" />

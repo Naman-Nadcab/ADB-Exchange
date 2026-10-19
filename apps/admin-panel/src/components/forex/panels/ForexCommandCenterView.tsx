@@ -24,6 +24,7 @@ import { Button } from '@/components/ui/Button';
 import { Input } from '@/components/ui/Input';
 import { KpiSkeleton } from '@/components/ui/Skeleton';
 import { cn } from '@/lib/cn';
+import { ForexDeskMap } from '@/components/forex/ForexDeskMap';
 import {
   ForexExposureBar,
   ForexSectionLabel,
@@ -364,6 +365,8 @@ export function ForexCommandCenterView() {
           </div>
         </div>
       </ForexWorkspaceSurface>
+
+      <ForexDeskMap />
 
       {/* OPERATING STATE */}
       <div className="grid gap-3 lg:grid-cols-12">

@@ -279,7 +279,7 @@ export function ForexInstrumentsPanel() {
         open={!!detail}
         onClose={() => setDetail(null)}
         title={detail?.symbol ?? 'Instrument'}
-        description="Contract specification snapshot"
+        description="This symbol only. Markup widens a real bid/ask. A zero spread stays zero."
         size="lg"
       >
         {detail ? (

@@ -84,12 +84,15 @@ restore_images() {
   case "$ADMIN_COMPOSE_IMAGE" in
     sha256:*) echo "ROLLBACK_IMAGE_NAME_UNUSABLE" >&2; return 1 ;;
   esac
-  docker image inspect "$PREVIOUS_BACKEND_IMAGE_ID" >/dev/null
   docker image inspect "$PREVIOUS_ADMIN_IMAGE_ID" >/dev/null
-  docker tag "$PREVIOUS_BACKEND_IMAGE_ID" "$BACKEND_COMPOSE_IMAGE"
+  scope=${RESTORE_SCOPE:-both}
+  if [ "$scope" != "admin" ]; then
+    docker image inspect "$PREVIOUS_BACKEND_IMAGE_ID" >/dev/null
+    docker tag "$PREVIOUS_BACKEND_IMAGE_ID" "$BACKEND_COMPOSE_IMAGE"
+    docker compose -f docker-compose.production.yml up -d --no-deps --no-build backend
+    wait_healthy exchange-backend
+  fi
   docker tag "$PREVIOUS_ADMIN_IMAGE_ID" "$ADMIN_COMPOSE_IMAGE"
-  docker compose -f docker-compose.production.yml up -d --no-deps --no-build backend
-  wait_healthy exchange-backend
   docker compose -f docker-compose.production.yml up -d --no-deps --no-build admin-panel
   wait_healthy exchange-admin
   if [ -n "${PREVIOUS_SHA:-}" ]; then
@@ -112,7 +115,11 @@ assert_others_unchanged() {
   before=$1
   after=$(mktemp)
   record_runtime >"$after"
-  for name in exchange-frontend exchange-postgres exchange-redis exchange-nats exchange-matching-engine exchange-nginx exchange-indexer exchange-rabbitmq; do
+  names="exchange-frontend exchange-postgres exchange-redis exchange-nats exchange-matching-engine exchange-nginx exchange-indexer exchange-rabbitmq"
+  if [ "$MODE" = "admin" ]; then
+    names="$names exchange-backend"
+  fi
+  for name in $names; do
     old=$(grep "^$name " "$before" || true)
     new=$(grep "^$name " "$after" || true)
     if [ "$old" != "$new" ]; then
@@ -143,7 +150,7 @@ case "$MODE" in
     wait_healthy exchange-admin
     exit 0
     ;;
-  deploy) ;;
+  deploy|admin) ;;
   *)
     echo "UNKNOWN_MODE" >&2
     exit 1
@@ -208,25 +215,32 @@ echo "ADMIN_CREATED=$(docker inspect -f '{{.Created}}' exchange-admin)"
 docker tag "$old_backend" "adb-exchange-backend:backup-$ts"
 docker tag "$old_admin" "adb-exchange-admin:backup-$ts"
 
-PG_USER=$(env_get POSTGRES_USER)
-PG_DB=$(env_get POSTGRES_DB)
-PG_USER=${PG_USER:-exchange}
-PG_DB=${PG_DB:-exchange}
 mkdir -p "$APP/backups"
-db_file="$APP/backups/exchange_db_${ts}.sql.gz"
-if ! docker exec exchange-postgres pg_isready -U "$PG_USER" -d "$PG_DB" >/dev/null 2>&1; then
-  echo "POSTGRES_NOT_READY" >&2
-  exit 1
+db_file=none
+restore_scope=both
+if [ "$MODE" = "admin" ]; then
+  restore_scope=admin
+  echo "BACKUP_DB=skipped"
+else
+  PG_USER=$(env_get POSTGRES_USER)
+  PG_DB=$(env_get POSTGRES_DB)
+  PG_USER=${PG_USER:-exchange}
+  PG_DB=${PG_DB:-exchange}
+  db_file="$APP/backups/exchange_db_${ts}.sql.gz"
+  if ! docker exec exchange-postgres pg_isready -U "$PG_USER" -d "$PG_DB" >/dev/null 2>&1; then
+    echo "POSTGRES_NOT_READY" >&2
+    exit 1
+  fi
+  docker exec exchange-postgres pg_dump -U "$PG_USER" -d "$PG_DB" --no-owner --no-acl | gzip > "$db_file"
+  gzip -t "$db_file"
+  db_bytes=$(wc -c < "$db_file" | tr -d ' ')
+  if [ -z "$db_bytes" ] || [ "$db_bytes" -lt 1000 ]; then
+    echo "BACKUP_DB_TOO_SMALL" >&2
+    exit 1
+  fi
+  echo "BACKUP_DB=$db_file"
+  echo "BACKUP_DB_BYTES=$db_bytes"
 fi
-docker exec exchange-postgres pg_dump -U "$PG_USER" -d "$PG_DB" --no-owner --no-acl | gzip > "$db_file"
-gzip -t "$db_file"
-db_bytes=$(wc -c < "$db_file" | tr -d ' ')
-if [ -z "$db_bytes" ] || [ "$db_bytes" -lt 1000 ]; then
-  echo "BACKUP_DB_TOO_SMALL" >&2
-  exit 1
-fi
-echo "BACKUP_DB=$db_file"
-echo "BACKUP_DB_BYTES=$db_bytes"
 
 umask 077
 cat >"$ROLLBACK_FILE" <<EOF
@@ -237,6 +251,7 @@ ADMIN_COMPOSE_IMAGE=$admin_name
 PREVIOUS_SHA=$HEAD
 BACKUP_TS=$ts
 BACKUP_DB=$db_file
+RESTORE_SCOPE=$restore_scope
 EOF
 chmod 600 "$ROLLBACK_FILE"
 cp "$ROLLBACK_FILE" "$APP/backups/forex-desk-rollback-$ts.env"
@@ -257,7 +272,11 @@ if [ "$(git rev-parse HEAD)" != "$RELEASE" ]; then
   fail "HEAD_AFTER_MERGE_MISMATCH"
 fi
 server_files=$(git diff --name-only "$EXPECTED" HEAD)
-disallowed=$(printf '%s\n' "$server_files" | grep -v -e '^apps/backend/' -e '^apps/admin-panel/' -e '^\.github/workflows/deploy-forex-desk.yml$' -e '^deployment/forex-desk-remote.sh$' || true)
+if [ "$MODE" = "admin" ]; then
+  disallowed=$(printf '%s\n' "$server_files" | grep -v -e '^apps/admin-panel/' -e '^\.github/workflows/deploy-forex-desk.yml$' -e '^deployment/forex-desk-remote.sh$' || true)
+else
+  disallowed=$(printf '%s\n' "$server_files" | grep -v -e '^apps/backend/' -e '^apps/admin-panel/' -e '^\.github/workflows/deploy-forex-desk.yml$' -e '^deployment/forex-desk-remote.sh$' || true)
+fi
 if [ -n "$disallowed" ]; then
   echo "SERVER_DIFF_NOT_DESK_ONLY" >&2
   printf '%s\n' "$disallowed" | head -40 >&2
@@ -267,16 +286,18 @@ if [ -z "$server_files" ]; then
   fail "EMPTY_DIFF"
 fi
 
-if ! docker compose -f docker-compose.production.yml up -d --build --no-deps backend; then
-  now_backend=$(docker inspect -f '{{.Image}}' exchange-backend)
-  if [ "$now_backend" != "$old_backend" ]; then
-    REPLACED_BACKEND=1
+if [ "$MODE" != "admin" ]; then
+  if ! docker compose -f docker-compose.production.yml up -d --build --no-deps backend; then
+    now_backend=$(docker inspect -f '{{.Image}}' exchange-backend)
+    if [ "$now_backend" != "$old_backend" ]; then
+      REPLACED_BACKEND=1
+    fi
+    fail "BACKEND_UP_FAILED"
   fi
-  fail "BACKEND_UP_FAILED"
-fi
-REPLACED_BACKEND=1
-if ! wait_healthy exchange-backend; then
-  fail "BACKEND_UNHEALTHY"
+  REPLACED_BACKEND=1
+  if ! wait_healthy exchange-backend; then
+    fail "BACKEND_UNHEALTHY"
+  fi
 fi
 
 if ! docker compose -f docker-compose.production.yml up -d --build --no-deps admin-panel; then

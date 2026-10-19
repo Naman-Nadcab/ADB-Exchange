@@ -22,7 +22,7 @@ type SessionSnapshot = {
   /** Catalog session names (Sydney, Tokyo, …) */
   sessions?: string[];
   eligibility?: SessionEligibility;
-  holidayCoverage?: boolean;
+  holidayCoverage?: boolean | string;
   holidayRequired?: boolean;
   holidaySafe?: boolean;
   exceptionsConfigured?: number;
@@ -54,6 +54,25 @@ function fmtList(values: unknown): string {
   if (Array.isArray(values)) {
     if (values.length === 0) return 'None';
     return values.every((v) => typeof v === 'string') ? values.join(', ') : `${values.length} item(s)`;
+  }
+  return '—';
+}
+
+function plainValue(value: unknown): string {
+  if (value == null || value === '') return '—';
+  if (typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean') return String(value);
+  if (Array.isArray(value)) return fmtList(value);
+  if (typeof value === 'object') {
+    const row = value as Record<string, unknown>;
+    if ('longExecutableClose' in row || 'shortExecutableClose' in row) {
+      const longClose = String(row.longExecutableClose ?? 'bid').toLowerCase();
+      const shortClose = String(row.shortExecutableClose ?? 'ask').toLowerCase();
+      return `Long closes on ${longClose}, short closes on ${shortClose}`;
+    }
+    const parts = Object.entries(row)
+      .filter(([, v]) => v != null && typeof v !== 'object')
+      .map(([k, v]) => `${k}: ${String(v)}`);
+    return parts.length > 0 ? parts.join(' · ') : '—';
   }
   return '—';
 }
@@ -117,8 +136,8 @@ export function ForexSessionsPanel(props: { sessions: unknown; holiday?: unknown
             { label: 'Session overlaps', value: fmtOverlapPairs(eligibility?.overlaps) },
             {
               label: 'Holiday coverage',
-              value: snap?.holidayCoverage ? 'Configured' : 'Missing',
-              highlight: snap?.holidayCoverage ? 'success' : 'warning',
+              value: snap?.holidayCoverage === true || snap?.holidayCoverage === 'CONFIGURED' ? 'Configured' : 'Missing',
+              highlight: snap?.holidayCoverage === true || snap?.holidayCoverage === 'CONFIGURED' ? 'success' : 'warning',
             },
             {
               label: 'Holiday safe',
@@ -129,7 +148,7 @@ export function ForexSessionsPanel(props: { sessions: unknown; holiday?: unknown
             { label: 'DST model', value: snap?.dstModel ?? '—' },
             { label: 'DST applied', value: snap?.dstApplied ? 'Yes' : 'No' },
             { label: 'Weekend TZ', value: snap?.weekendTimezone ?? '—', mono: true },
-            { label: 'Valuation', value: snap?.valuationPolicy ?? '—', mono: true },
+            { label: 'Valuation', value: plainValue(snap?.valuationPolicy) },
             { label: 'Data source', value: snap?.source ?? '—', mono: true },
           ]}
         />

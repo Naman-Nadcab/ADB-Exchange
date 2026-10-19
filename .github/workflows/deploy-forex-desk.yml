@@ -5,12 +5,15 @@ name: Deploy forex desk images
 # current containers. A failed health check restores the tagged images.
 # Push a tag at the commit that contains this file:
 #   forex-desk-deploy-run/<release-sha>/<expected-production-sha>
+# Admin image only, leaving the API container running:
+#   forex-desk-admin-run/<release-sha>/<expected-production-sha>
 # Restore the backup point with:
 #   forex-desk-rollback-run/<release-sha>/<expected-production-sha>
 on:
   push:
     tags:
       - 'forex-desk-deploy-run/**'
+      - 'forex-desk-admin-run/**'
       - 'forex-desk-rollback-run/**'
 
 permissions:
@@ -22,7 +25,7 @@ concurrency:
 
 jobs:
   deploy:
-    if: startsWith(github.ref, 'refs/tags/forex-desk-deploy-run/') || startsWith(github.ref, 'refs/tags/forex-desk-rollback-run/')
+    if: startsWith(github.ref, 'refs/tags/forex-desk-deploy-run/') || startsWith(github.ref, 'refs/tags/forex-desk-admin-run/') || startsWith(github.ref, 'refs/tags/forex-desk-rollback-run/')
     runs-on: ubuntu-latest
     timeout-minutes: 90
     environment: production
@@ -49,6 +52,12 @@ jobs:
               release=${rest%%/*}
               expected=${rest#*/}
               ;;
+            refs/tags/forex-desk-admin-run/*/*)
+              mode=admin
+              rest=${EVENT_REF#refs/tags/forex-desk-admin-run/}
+              release=${rest%%/*}
+              expected=${rest#*/}
+              ;;
             refs/tags/forex-desk-rollback-run/*/*)
               mode=rollback
               rest=${EVENT_REF#refs/tags/forex-desk-rollback-run/}
@@ -63,13 +72,17 @@ jobs:
           printf '%s' "$release" | grep -Eq '^[0-9a-f]{40}$'
           printf '%s' "$expected" | grep -Eq '^[0-9a-f]{40}$'
           test "$release" = "$EVENT_SHA"
-          if [ "$mode" = "deploy" ]; then
+          if [ "$mode" != "rollback" ]; then
             test "$expected" != "$release"
             git cat-file -e "${expected}^{commit}"
             git merge-base --is-ancestor "$expected" "$release"
             files=$(git diff --name-only "$expected" "$release")
             test -n "$files"
-            disallowed=$(printf '%s\n' "$files" | grep -v -e '^apps/backend/' -e '^apps/admin-panel/' -e '^\.github/workflows/deploy-forex-desk.yml$' -e '^deployment/forex-desk-remote.sh$' || true)
+            if [ "$mode" = "admin" ]; then
+              disallowed=$(printf '%s\n' "$files" | grep -v -e '^apps/admin-panel/' -e '^\.github/workflows/deploy-forex-desk.yml$' -e '^deployment/forex-desk-remote.sh$' || true)
+            else
+              disallowed=$(printf '%s\n' "$files" | grep -v -e '^apps/backend/' -e '^apps/admin-panel/' -e '^\.github/workflows/deploy-forex-desk.yml$' -e '^deployment/forex-desk-remote.sh$' || true)
+            fi
             if [ -n "$disallowed" ]; then
               echo "DISALLOWED_PATHS" >&2
               printf '%s\n' "$disallowed" | head -40 >&2
@@ -120,7 +133,7 @@ jobs:
           ssh-keygen -lf "$dir/id" >/dev/null
 
       - name: Copy the desk bundle
-        if: steps.decision.outputs.mode == 'deploy'
+        if: (steps.decision.outputs.mode == 'deploy' || steps.decision.outputs.mode == 'admin')
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
@@ -184,7 +197,7 @@ jobs:
             < deployment/forex-desk-remote.sh
 
       - name: Public smoke checks
-        if: steps.decision.outputs.mode == 'deploy'
+        if: (steps.decision.outputs.mode == 'deploy' || steps.decision.outputs.mode == 'admin')
         run: |
           set -eu
           curl -kfsS --max-time 25 https://169.58.39.2/health | grep -q '"status":"healthy"'
@@ -199,7 +212,7 @@ jobs:
           echo "public_smoke=ok"
 
       - name: Restore the backup point when the public check fails
-        if: failure() && steps.remote.outcome == 'success' && steps.decision.outputs.mode == 'deploy'
+        if: failure() && steps.remote.outcome == 'success' && (steps.decision.outputs.mode == 'deploy' || steps.decision.outputs.mode == 'admin')
         env:
           VPS_HOST: ${{ secrets.VPS_HOST }}
           VPS_USER: ${{ secrets.VPS_USER }}
