@@ -29,27 +29,52 @@ type PolicyForm = {
   warnLevel: string;
   callLevel: string;
   stopOut: string;
+  maintenanceRatio: string;
   commModel: string;
   commRate: string;
+  commMinimum: string;
   swapLong: string;
   swapShort: string;
   swapRoll: string;
   swapTz: string;
+  tripleSwapDay: string;
 };
 
+const TRIPLE_SWAP_DAYS = [
+  { value: '0', label: 'Sunday' },
+  { value: '1', label: 'Monday' },
+  { value: '2', label: 'Tuesday' },
+  { value: '3', label: 'Wednesday' },
+  { value: '4', label: 'Thursday' },
+  { value: '5', label: 'Friday' },
+  { value: '6', label: 'Saturday' },
+] as const;
+
+function positiveDecimal(raw: string): string | null {
+  const v = raw.trim();
+  if (!/^\d+(\.\d+)?$/.test(v)) return null;
+  const n = Number(v);
+  if (!Number.isFinite(n) || n <= 0) return null;
+  return v;
+}
+
 function formFromSnap(snap: ForexAdminPolicySnapshot): PolicyForm {
+  const day = snap.swaps.global.tripleSwapDay;
   return {
     globalMaxLev: snap.leverage.effective.globalMax,
     defaultLev: snap.leverage.effective.defaultAccount,
     warnLevel: snap.margin.effective.warningLevel,
     callLevel: snap.margin.effective.callLevel,
     stopOut: snap.margin.effective.stopOutLevel,
+    maintenanceRatio: snap.margin.effective.maintenanceRatio ?? '',
     commModel: snap.commission.global.model,
-    commRate: snap.commission.global.rate,
+    commRate: snap.commission.global.rate ?? '',
+    commMinimum: snap.commission.global.minimum ?? '0',
     swapLong: snap.swaps.global.longSwap,
     swapShort: snap.swaps.global.shortSwap,
     swapRoll: snap.swaps.global.rolloverTime,
     swapTz: snap.swaps.global.timezone,
+    tripleSwapDay: Number.isInteger(day) && day >= 0 && day <= 6 ? String(day) : '3',
   };
 }
 
@@ -60,6 +85,8 @@ export function ForexPolicyPanel(props: { mode: 'fees-swaps' | 'margin-risk' }) 
   const [form, setForm] = useState<PolicyForm | null>(null);
   const [saveIntent, setSaveIntent] = useState<'leverage' | 'margin' | 'commission' | 'swap' | null>(null);
   const [instLeverage, setInstLeverage] = useState<{ symbol: string; display: string; value: string } | null>(null);
+  const [instVolume, setInstVolume] = useState<{ symbol: string; display: string; min: string; max: string } | null>(null);
+  const [volumeFormError, setVolumeFormError] = useState<string | null>(null);
   const [approvalNotice, setApprovalNotice] = useState<ForexApprovalPendingInfo | null>(null);
 
   const policyQ = useQuery({
@@ -105,6 +132,23 @@ export function ForexPolicyPanel(props: { mode: 'fees-swaps' | 'margin-risk' }) 
     onSuccess: () => {
       void qc.invalidateQueries({ queryKey: ['admin', 'forex'] });
       setInstLeverage(null);
+    },
+  });
+
+  const volM = useMutation({
+    mutationFn: async (args: { symbol: string; min_volume: string; max_volume: string; reason: string }) => {
+      const res = await patchForexInstrumentPolicy(token, args.symbol, {
+        reason: args.reason,
+        min_volume: args.min_volume,
+        max_volume: args.max_volume,
+      });
+      if (!res.success || !res.data) throw new Error(res.error?.message ?? 'Volume update failed');
+      return res.data;
+    },
+    onSuccess: () => {
+      void qc.invalidateQueries({ queryKey: ['admin', 'forex'] });
+      setInstVolume(null);
+      setVolumeFormError(null);
     },
   });
 
@@ -176,19 +220,23 @@ export function ForexPolicyPanel(props: { mode: 'fees-swaps' | 'margin-risk' }) 
       ) : null}
 
       {form && mode === 'margin-risk' ? (
-        <ForexPanelShell title="Margin levels (%)" description="Warning, margin call, and stop-out thresholds">
-          <div className="grid gap-3 sm:grid-cols-3">
+        <ForexPanelShell title="Margin levels" description="Warning, margin call, and stop-out are percents. Maintenance is the ratio applied to initial margin.">
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
             <label className="text-xs text-admin-muted">
-              Warning
+              Warning %
               <Input value={form.warnLevel} onChange={(e) => setField('warnLevel', e.target.value)} className="mt-1 h-9" />
             </label>
             <label className="text-xs text-admin-muted">
-              Call
+              Call %
               <Input value={form.callLevel} onChange={(e) => setField('callLevel', e.target.value)} className="mt-1 h-9" />
             </label>
             <label className="text-xs text-admin-muted">
-              Stop-out
+              Stop-out %
               <Input value={form.stopOut} onChange={(e) => setField('stopOut', e.target.value)} className="mt-1 h-9" />
+            </label>
+            <label className="text-xs text-admin-muted">
+              Maintenance ratio
+              <Input value={form.maintenanceRatio} onChange={(e) => setField('maintenanceRatio', e.target.value)} className="mt-1 h-9" />
             </label>
           </div>
           <ProtectedAction permission="forex:control" fallback="disabled">
@@ -219,6 +267,10 @@ export function ForexPolicyPanel(props: { mode: 'fees-swaps' | 'margin-risk' }) 
               Rate
               <Input value={form.commRate} onChange={(e) => setField('commRate', e.target.value)} className="mt-1 h-9" />
             </label>
+            <label className="text-xs text-admin-muted">
+              Minimum
+              <Input value={form.commMinimum} onChange={(e) => setField('commMinimum', e.target.value)} className="mt-1 h-9" />
+            </label>
           </div>
           <ProtectedAction permission="forex:control" fallback="disabled">
             <Button type="button" size="sm" className="mt-3" disabled={patchM.isPending} onClick={() => setSaveIntent('commission')}>
@@ -246,6 +298,20 @@ export function ForexPolicyPanel(props: { mode: 'fees-swaps' | 'margin-risk' }) 
             <label className="text-xs text-admin-muted">
               Timezone
               <Input value={form.swapTz} onChange={(e) => setField('swapTz', e.target.value)} className="mt-1 h-9" />
+            </label>
+            <label className="text-xs text-admin-muted">
+              Triple swap day
+              <select
+                value={form.tripleSwapDay}
+                onChange={(e) => setField('tripleSwapDay', e.target.value)}
+                className="mt-1 h-9 w-full rounded border border-admin-border bg-admin-bg px-2 text-sm"
+              >
+                {TRIPLE_SWAP_DAYS.map((day) => (
+                  <option key={day.value} value={day.value}>
+                    {day.label}
+                  </option>
+                ))}
+              </select>
             </label>
           </div>
           <ProtectedAction permission="forex:control" fallback="disabled">
@@ -303,6 +369,93 @@ export function ForexPolicyPanel(props: { mode: 'fees-swaps' | 'margin-risk' }) 
         </ForexPanelShell>
       ) : null}
 
+      {snap && mode === 'margin-risk' ? (
+        <ForexPanelShell
+          title="Instrument volume"
+          description="Min and max lot size. Customer orders outside this band are rejected."
+          noPadding
+        >
+          <div className="overflow-x-auto p-4 pt-0">
+            <table className="w-full min-w-[40rem] text-xs">
+              <thead>
+                <tr className="border-b border-admin-border text-admin-muted">
+                  <th className="py-2 text-left">Symbol</th>
+                  <th className="py-2 text-left">Effective</th>
+                  <th className="py-2 text-left">Catalog</th>
+                  <th className="py-2 text-left">New min</th>
+                  <th className="py-2 text-left">New max</th>
+                  <th className="py-2 text-right">Action</th>
+                </tr>
+              </thead>
+              <tbody>
+                {snap.instruments.map((row) => (
+                  <tr key={row.symbol} className="border-b border-admin-border/40">
+                    <td className="py-2 font-medium">
+                      {row.displaySymbol}
+                      {row.overridden ? <span className="ml-1 text-[10px] text-admin-warning">override</span> : null}
+                    </td>
+                    <td className="py-2 font-mono tabular-nums">
+                      {row.effective.minVolume} – {row.effective.maxVolume}
+                    </td>
+                    <td className="py-2 font-mono text-admin-muted tabular-nums">
+                      {row.catalog.minVolume} – {row.catalog.maxVolume}
+                    </td>
+                    <td className="py-2">
+                      <Input
+                        key={`${row.symbol}-min-${row.effective.minVolume}`}
+                        className="h-8 w-24 font-mono"
+                        defaultValue={row.effective.minVolume}
+                        id={`vmin-${row.symbol}`}
+                      />
+                    </td>
+                    <td className="py-2">
+                      <Input
+                        key={`${row.symbol}-max-${row.effective.maxVolume}`}
+                        className="h-8 w-24 font-mono"
+                        defaultValue={row.effective.maxVolume}
+                        id={`vmax-${row.symbol}`}
+                      />
+                    </td>
+                    <td className="py-2 text-right">
+                      <ProtectedAction permission="forex:control" fallback="disabled">
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="secondary"
+                          onClick={() => {
+                            const minEl = document.getElementById(`vmin-${row.symbol}`) as HTMLInputElement | null;
+                            const maxEl = document.getElementById(`vmax-${row.symbol}`) as HTMLInputElement | null;
+                            const min = positiveDecimal(minEl?.value ?? '');
+                            const max = positiveDecimal(maxEl?.value ?? '');
+                            if (!min || !max) {
+                              setVolumeFormError('Min and max volume must be positive numbers.');
+                              return;
+                            }
+                            if (Number(min) > Number(max)) {
+                              setVolumeFormError('Min volume cannot be above max volume.');
+                              return;
+                            }
+                            if (min === row.effective.minVolume && max === row.effective.maxVolume) {
+                              setVolumeFormError(null);
+                              return;
+                            }
+                            setVolumeFormError(null);
+                            setInstVolume({ symbol: row.symbol, display: row.displaySymbol, min, max });
+                          }}
+                        >
+                          Apply
+                        </Button>
+                      </ProtectedAction>
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+            {volumeFormError ? <p className="mt-2 text-sm text-red-400">{volumeFormError}</p> : null}
+          </div>
+        </ForexPanelShell>
+      ) : null}
+
       {snap?.riskLimits ? (
         <ForexPanelShell title="Risk limits" description="Effective pre-trade gates and exposure caps">
           <ForexDetailGrid
@@ -353,6 +506,7 @@ export function ForexPolicyPanel(props: { mode: 'fees-swaps' | 'margin-risk' }) 
                   warning_level: form.warnLevel,
                   call_level: form.callLevel,
                   stop_out_level: form.stopOut,
+                  maintenance_ratio: form.maintenanceRatio,
                 },
               },
               reason,
@@ -366,7 +520,20 @@ export function ForexPolicyPanel(props: { mode: 'fees-swaps' | 'margin-risk' }) 
         title="Save commission policy"
         loading={patchM.isPending}
         onConfirm={(reason) => {
-          if (form) patchWithReason({ commission: { model: form.commModel, rate: form.commRate } }, reason);
+          if (form) {
+            const rate = form.commRate.trim();
+            const minimum = form.commMinimum.trim();
+            patchWithReason(
+              {
+                commission: {
+                  model: form.commModel,
+                  ...(rate ? { rate } : {}),
+                  ...(minimum ? { minimum } : {}),
+                },
+              },
+              reason,
+            );
+          }
         }}
       />
       <ForexConfirmModal
@@ -383,6 +550,7 @@ export function ForexPolicyPanel(props: { mode: 'fees-swaps' | 'margin-risk' }) 
                   short_swap: form.swapShort,
                   rollover_time: form.swapRoll,
                   timezone: form.swapTz,
+                  triple_swap_day: Number(form.tripleSwapDay),
                 },
               },
               reason,
@@ -405,8 +573,27 @@ export function ForexPolicyPanel(props: { mode: 'fees-swaps' | 'margin-risk' }) 
           });
         }}
       />
+      <ForexConfirmModal
+        open={!!instVolume}
+        onClose={() => setInstVolume(null)}
+        title={`Set volume · ${instVolume?.display ?? ''}`}
+        description={instVolume ? `New lot band: ${instVolume.min} – ${instVolume.max}` : undefined}
+        loading={volM.isPending}
+        onConfirm={async (reason) => {
+          if (!instVolume) return;
+          await volM.mutateAsync({
+            symbol: instVolume.symbol,
+            min_volume: instVolume.min,
+            max_volume: instVolume.max,
+            reason,
+          });
+        }}
+      />
       {instM.isError ? (
         <p className="text-sm text-red-400">{instM.error instanceof Error ? instM.error.message : 'Instrument update failed'}</p>
+      ) : null}
+      {volM.isError ? (
+        <p className="text-sm text-red-400">{volM.error instanceof Error ? volM.error.message : 'Volume update failed'}</p>
       ) : null}
     </div>
   );

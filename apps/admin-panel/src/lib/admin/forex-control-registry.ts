@@ -55,9 +55,9 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     sectionRoute: '/forex/instruments',
     controls: [
       { id: 'catalog', label: 'Instrument catalog', description: 'Symbols, digits, contract size', kind: 'table', phase: 'F1', wired: true },
-      { id: 'trading_status', label: 'Per-symbol trading status', description: 'active / close-only / halted', kind: 'select', phase: 'F3', wired: true },
+      { id: 'trading_status', label: 'Per-symbol trading status', description: 'active / halted / closed', kind: 'select', phase: 'F3', wired: true },
       { id: 'leverage_cap', label: 'Max leverage per symbol', description: 'Instrument leverage ceiling', kind: 'number', phase: 'F4', wired: true },
-      { id: 'volume_bands', label: 'Min / max volume', description: 'Lot size constraints', kind: 'number', phase: 'F4', wired: false },
+      { id: 'volume_bands', label: 'Min / max volume', description: 'Lot size constraints', kind: 'number', phase: 'F4', wired: true },
     ],
   },
   {
@@ -66,7 +66,7 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     sectionRoute: '/forex/sessions',
     controls: [
       { id: 'session_snapshot', label: 'Session eligibility', description: 'Open / closed by symbol', kind: 'readonly', phase: 'F1', wired: true },
-      { id: 'holiday_calendar', label: 'Holiday calendar', description: 'DST-safe holiday coverage', kind: 'table', phase: 'F4', wired: false },
+      { id: 'holiday_calendar', label: 'Holiday calendar', description: 'DST-safe holiday coverage', kind: 'table', phase: 'F4', wired: true },
       { id: 'day_order_expiry', label: 'DAY order expiry', description: 'Expire working orders on session close', kind: 'toggle', phase: 'F4', wired: false },
     ],
   },
@@ -107,9 +107,9 @@ export const FOREX_CONTROL_GROUPS: ForexControlGroup[] = [
     title: 'Dealing desk',
     sectionRoute: '/forex/dealing',
     controls: [
-      { id: 'dealing_snapshot', label: 'Dealing snapshot', description: 'Desk limits & reject stats', kind: 'readonly', phase: 'F2', wired: false },
+      { id: 'dealing_snapshot', label: 'Dealing snapshot', description: 'Desk limits & reject stats', kind: 'readonly', phase: 'F2', wired: true },
       { id: 'last_look', label: 'Last look (future)', description: 'LP last-look ms', kind: 'number', phase: 'F5', wired: false },
-      { id: 'manual_intervention', label: 'Manual reject / hold', description: 'Hold account or symbol', kind: 'action', phase: 'F3', wired: false, dangerous: true },
+      { id: 'manual_intervention', label: 'Dealer accept / reject', description: 'Accept, reject, assign, or escalate a queued order', kind: 'action', phase: 'F3', wired: true, dangerous: true },
     ],
   },
   {
