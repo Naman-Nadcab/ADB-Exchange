@@ -63,7 +63,7 @@ function relationRefs(tx: ForexLedgerTransaction): Record<string, unknown> {
   return out;
 }
 
-export function publicLedgerRow(
+function ledgerRow(
   tx: ForexLedgerTransaction,
   accountId?: string
 ): Omit<PublicLedgerRow, 'balanceBefore' | 'balanceAfter'> {
@@ -86,6 +86,11 @@ export function publicLedgerRow(
   };
 }
 
+/** One-argument so it can be passed to Array.map. Both cash legs are included. */
+export function publicLedgerRow(tx: ForexLedgerTransaction): Omit<PublicLedgerRow, 'balanceBefore' | 'balanceAfter'> {
+  return ledgerRow(tx);
+}
+
 /** Chronological CUSTOMER_CASH running sum, returned newest-first. */
 export function publicLedgerTrail(txs: ForexLedgerTransaction[], accountId?: string): PublicLedgerRow[] {
   const chrono = [...txs].sort((a, b) => {
@@ -95,7 +100,7 @@ export function publicLedgerTrail(txs: ForexLedgerTransaction[], accountId?: str
   let bal = fxDecimal(0);
   const rows: PublicLedgerRow[] = [];
   for (const tx of chrono) {
-    const base = publicLedgerRow(tx, accountId);
+    const base = ledgerRow(tx, accountId);
     const before = bal;
     bal = bal.plus(base.net);
     rows.push({
