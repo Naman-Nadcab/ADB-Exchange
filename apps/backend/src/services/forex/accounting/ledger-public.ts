@@ -38,11 +38,15 @@ export type PublicLedgerReconciliation = {
   status: 'MATCH' | 'MISMATCH';
 };
 
-function cashSides(tx: ForexLedgerTransaction): { cashDebit: ReturnType<typeof fxDecimal>; cashCredit: ReturnType<typeof fxDecimal> } {
+function cashSides(
+  tx: ForexLedgerTransaction,
+  accountId?: string
+): { cashDebit: ReturnType<typeof fxDecimal>; cashCredit: ReturnType<typeof fxDecimal> } {
   let cashDebit = fxDecimal(0);
   let cashCredit = fxDecimal(0);
   for (const e of tx.entries) {
     if (e.ledgerAccount !== 'CUSTOMER_CASH') continue;
+    if (accountId && e.accountId !== accountId) continue;
     cashDebit = cashDebit.plus(e.debit);
     cashCredit = cashCredit.plus(e.credit);
   }
@@ -59,8 +63,11 @@ function relationRefs(tx: ForexLedgerTransaction): Record<string, unknown> {
   return out;
 }
 
-export function publicLedgerRow(tx: ForexLedgerTransaction): Omit<PublicLedgerRow, 'balanceBefore' | 'balanceAfter'> {
-  const { cashDebit, cashCredit } = cashSides(tx);
+export function publicLedgerRow(
+  tx: ForexLedgerTransaction,
+  accountId?: string
+): Omit<PublicLedgerRow, 'balanceBefore' | 'balanceAfter'> {
+  const { cashDebit, cashCredit } = cashSides(tx, accountId);
   const debit = tx.entries.reduce((a, e) => a.plus(e.debit), fxDecimal(0)).toFixed();
   const credit = tx.entries.reduce((a, e) => a.plus(e.credit), fxDecimal(0)).toFixed();
   return {
@@ -80,7 +87,7 @@ export function publicLedgerRow(tx: ForexLedgerTransaction): Omit<PublicLedgerRo
 }
 
 /** Chronological CUSTOMER_CASH running sum, returned newest-first. */
-export function publicLedgerTrail(txs: ForexLedgerTransaction[]): PublicLedgerRow[] {
+export function publicLedgerTrail(txs: ForexLedgerTransaction[], accountId?: string): PublicLedgerRow[] {
   const chrono = [...txs].sort((a, b) => {
     const t = a.createdAt.localeCompare(b.createdAt);
     return t !== 0 ? t : a.transactionId.localeCompare(b.transactionId);
@@ -88,7 +95,7 @@ export function publicLedgerTrail(txs: ForexLedgerTransaction[]): PublicLedgerRo
   let bal = fxDecimal(0);
   const rows: PublicLedgerRow[] = [];
   for (const tx of chrono) {
-    const base = publicLedgerRow(tx);
+    const base = publicLedgerRow(tx, accountId);
     const before = bal;
     bal = bal.plus(base.net);
     rows.push({
@@ -103,9 +110,10 @@ export function publicLedgerTrail(txs: ForexLedgerTransaction[]): PublicLedgerRo
 export function publicLedgerReconciliation(
   txs: ForexLedgerTransaction[],
   ledgerBalance: string,
-  currency: string
+  currency: string,
+  accountId?: string
 ): PublicLedgerReconciliation {
-  const c = forexAccountingComponents(txs);
+  const c = forexAccountingComponents(txs, accountId);
   const match = fxDecimal(c.ledgerFromComponents).eq(fxDecimal(ledgerBalance));
   return {
     currency,
