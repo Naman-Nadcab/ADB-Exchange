@@ -200,7 +200,24 @@ jobs:
         if: (steps.decision.outputs.mode == 'deploy' || steps.decision.outputs.mode == 'admin')
         run: |
           set -eu
-          curl -kfsS --max-time 25 https://169.58.39.2/health | grep -q '"status":"healthy"'
+          # Sanctions lists finish downloading after Docker already reports the backend healthy.
+          # One immediate probe sees status=degraded and would roll a good desk release back.
+          body=""
+          ok=0
+          for i in $(seq 1 18); do
+            body=$(curl -kfsS --max-time 25 https://169.58.39.2/health || true)
+            if printf '%s' "$body" | grep -q '"status":"healthy"'; then
+              ok=1
+              break
+            fi
+            echo "health_attempt=$i" >&2
+            sleep 10
+          done
+          if [ "$ok" != 1 ]; then
+            echo "HEALTH_NOT_HEALTHY" >&2
+            printf '%s\n' "$body" | head -c 800 >&2
+            exit 1
+          fi
           curl -kfsSI --max-time 25 https://169.58.39.2/login >/dev/null
           html=$(curl -kfsS --max-time 25 https://169.58.39.2/admin/login)
           printf '%s' "$html" | grep -q 'admin-login-shell'
