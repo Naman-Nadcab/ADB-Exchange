@@ -550,6 +550,29 @@ export class ForexAccountingService {
       );
   }
 
+  /**
+   * Posted transactions that move this account's cash.
+   * An internal transfer is stored on the sender, and the receiver's credit leg still belongs to the receiver.
+   */
+  private cashTouchingTransactions(accountId: string): ForexLedgerTransaction[] {
+    return this.ledger.store.snapshot().filter(
+      (tx) =>
+        tx.status === 'POSTED' &&
+        tx.entries.some((e) => e.ledgerAccount === 'CUSTOMER_CASH' && e.accountId === accountId)
+    );
+  }
+
+  private examinedLedger(accountId: string): ForexLedgerTransaction[] {
+    const seen = new Set<string>();
+    const rows: ForexLedgerTransaction[] = [];
+    for (const tx of [...this.ledger.store.listByAccount(accountId), ...this.cashTouchingTransactions(accountId)]) {
+      if (seen.has(tx.transactionId)) continue;
+      seen.add(tx.transactionId);
+      rows.push(tx);
+    }
+    return rows;
+  }
+
   reconcile(accountId: string): ForexReconciliationResult {
     const fail = (reason: string, detail?: string): ForexReconciliationResult => {
       forexAccountingReconciliationErrorTotal.inc({ reason });
@@ -558,14 +581,15 @@ export class ForexAccountingService {
       return { ok: false, reason, detail, accountId };
     };
 
-    for (const tx of this.ledger.store.listByAccount(accountId)) {
+    const touching = this.cashTouchingTransactions(accountId);
+    for (const tx of this.examinedLedger(accountId)) {
       const d = tx.entries.reduce((a, e) => a.plus(e.debit), fxDecimal(0));
       const c = tx.entries.reduce((a, e) => a.plus(e.credit), fxDecimal(0));
       if (!d.eq(c)) return fail('LEDGER_UNBALANCED', tx.transactionId);
     }
 
     let fromTx = fxDecimal(0);
-    for (const tx of this.ledger.list(accountId)) {
+    for (const tx of touching) {
       for (const e of tx.entries) {
         if (e.ledgerAccount === 'CUSTOMER_CASH' && e.accountId === accountId) {
           fromTx = fromTx.plus(e.credit).minus(e.debit);
@@ -601,10 +625,12 @@ export class ForexAccountingService {
     if (!view || view.calculationStatus !== 'CALCULATED') {
       return fail('INCORRECT_EQUITY', view?.calculationStatus ?? 'UNAVAILABLE');
     }
-    const expectEq = fxDecimal(view.ledgerBalance).plus(view.unrealizedPnl);
+    const expectEq = fxDecimal(view.ledgerBalance)
+      .plus(this.ledger.customerCreditBalance(accountId))
+      .plus(view.unrealizedPnl);
     if (!expectEq.eq(view.equity)) return fail('INCORRECT_EQUITY', `${view.equity} != ${expectEq.toFixed()}`);
 
-    const components = forexAccountingComponents(this.ledger.list(accountId));
+    const components = forexAccountingComponents(touching, accountId);
     if (components.ledgerFromComponents !== fromEntries) {
       return fail('LEDGER_COMPONENT_MISMATCH', `${components.ledgerFromComponents} != ${fromEntries}`);
     }
@@ -649,7 +675,7 @@ export class ForexAccountingService {
   accountSummary(accountId: string) {
     const view = this.accountView(accountId);
     const pnl = this.pnlView(accountId);
-    const components = forexAccountingComponents(this.ledger.list(accountId));
+    const components = forexAccountingComponents(this.cashTouchingTransactions(accountId), accountId);
     return {
       source: 'SIMULATED' as const,
       valuationKind: 'CALCULATED' as const,
@@ -680,10 +706,11 @@ export class ForexAccountingService {
   }
 
   publicLedgerView(accountId: string) {
-    const txs = this.ledger.list(accountId);
+    const txs = this.cashTouchingTransactions(accountId);
+    const cash = this.ledger.customerCashBalance(accountId);
     return {
-      transactions: publicLedgerTrail(txs),
-      reconciliation: publicLedgerReconciliation(txs, this.ledger.customerCashBalance(accountId), ACCOUNTING_CURRENCY),
+      transactions: publicLedgerTrail(txs, accountId),
+      reconciliation: publicLedgerReconciliation(txs, cash, ACCOUNTING_CURRENCY, accountId),
     };
   }
 
